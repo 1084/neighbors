@@ -16,8 +16,8 @@ async function zoneCentroid(ugc, cache) {
 }
 function centroid(geometry) {
   const pts = [];
-  const walk = c => Array.isArray(c[0]) ? c.forEach(walk) : pts.push(c);
-  walk(geometry.coordinates);
+  const walk = c => { if (!Array.isArray(c) || !c.length) return; if (typeof c[0] === "number") { if (c.length >= 2) pts.push(c); } else c.forEach(walk); };
+  walk(geometry?.coordinates);
   if (!pts.length) return null;
   const [sx, sy] = pts.reduce(([a, b], [x, y]) => [a + x, b + y], [0, 0]);
   return [+(sy / pts.length).toFixed(4), +(sx / pts.length).toFixed(4)];
@@ -27,12 +27,14 @@ export default async function nws() {
   const cache = readJson(ZONE_CACHE, {});
   const data = await fetchJson("https://api.weather.gov/alerts/active?status=actual&message_type=alert,update", { fixture: "nws-alerts.json" });
   const items = [];
-  for (const f of data?.features || []) {
+  let firstError = null;
+  for (const f of data?.features || []) try {
     const p = f.properties || {};
     if (!["Extreme", "Severe", "Moderate"].includes(p.severity)) continue;   // skip Minor/Unknown (routine advisories)
     let lat = null, lon = null;
     if (f.geometry) [lat, lon] = centroid(f.geometry) || [null, null];
-    else for (const ugc of p.geocode?.UGC || []) { const c = await zoneCentroid(ugc, cache); if (c) { [lat, lon] = c; break; } }
+    if (lat == null) for (const ugc of p.geocode?.UGC || []) { const c = await zoneCentroid(ugc, cache); if (c) { [lat, lon] = c; break; } }
+    if (lat == null) continue;   // an alert we can't place is not shown (it would land in "national")
     const state = (p.geocode?.UGC?.[0] || "").slice(0, 2) || null;
     items.push(item({
       id: `nws:${p.id}`, feedId: "nws", category: "public-safety",
@@ -41,7 +43,8 @@ export default async function nws() {
       lat, lon, place: (p.areaDesc || "").split(";")[0], state,
       sourceUrl: p["@id"] || p.id, sourceName: p.senderName || "National Weather Service", updatedAt: p.sent,
     }));
-  }
+  } catch (e) { firstError ||= `${f?.properties?.id || "?"}: ${e.message}`; }
+  if (firstError) log(`nws: some alerts skipped; first error — ${firstError}`);
   writeJson(ZONE_CACHE, cache, true);
   log(`nws: ${items.length} significant alerts (${(data?.features || []).length} active)`);
   return items;

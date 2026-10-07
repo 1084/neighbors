@@ -2,9 +2,15 @@
 // Source: https://www.census.gov/geographies/reference-files/time-series/geo/gazetteer-files.html (public domain).
 // Run once, commit the result; re-run when a new Gazetteer vintage appears (yearly).
 import { resolve } from "node:path";
-import { DATA, USER_AGENT, writeJson, log } from "./lib/util.mjs";
+import { DATA, USER_AGENT, writeJson, readJson, log } from "./lib/util.mjs";
 
 const VINTAGE = process.env.ZCTA_VINTAGE || "2024";
+const TARGET = resolve(DATA, "zcta.json");
+if (process.argv.includes("--if-missing")) {
+  const have = Object.keys(readJson(TARGET, {})).length;
+  if (have >= 30000) { log(`data/zcta.json already has ${have} ZCTAs — skipping download`); process.exit(0); }
+  log(`data/zcta.json has ${have} ZCTAs (need ~33,000) — downloading`);
+}
 const URL = `https://www2.census.gov/geo/docs/maps-data/data/gazetteer/${VINTAGE}_Gazetteer/${VINTAGE}_Gaz_zcta_national.zip`;
 
 log(`downloading ${URL}`);
@@ -24,7 +30,7 @@ for (const line of lines.slice(1)) {
   const z = c[iZ]?.trim(), lat = +c[iLat], lon = +c[iLon];
   if (z && Number.isFinite(lat) && Number.isFinite(lon)) out[z] = [+lat.toFixed(4), +lon.toFixed(4)];
 }
-writeJson(resolve(DATA, "zcta.json"), out);
+writeJson(TARGET, out);
 log(`wrote ${Object.keys(out).length} ZCTAs to data/zcta.json`);
 
 function unzipSingle(buf) {

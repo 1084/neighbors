@@ -28,7 +28,7 @@ jobs:
       - name: Tests
         run: npm test
       - name: ZCTA table (first run only, then committed)
-        run: test -s data/zcta.json && node -e "const z=require('./data/zcta.json'); if(Object.keys(z).length<30000) process.exit(1)" || npm run zcta
+        run: node pipeline/zcta.mjs --if-missing
       - name: Build
         env:
           FEEDS: ${{ github.event.inputs.feeds }}

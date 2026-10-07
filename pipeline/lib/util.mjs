@@ -8,6 +8,7 @@ export const DATA = resolve(ROOT, "data");
 export const OUT = resolve(ROOT, "docs/data");
 export const FIXTURES = resolve(ROOT, "pipeline/fixtures");
 export const USER_AGENT = "neighbors-pipeline (johnhubert.llc; support@johnhubert.llc)";
+export const STATES = new Set("AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY PR GU VI AS MP".split(" "));
 export const CATEGORIES = ["governance", "elections", "public-spaces", "public-services", "volunteering", "public-safety"];
 
 export const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
@@ -57,7 +58,7 @@ export function item(o) {
     ends: iso(o.ends),
     lat: num(o.lat), lon: num(o.lon),
     place: clip(o.place || "", 80),
-    state: o.state ? String(o.state).toUpperCase().slice(0, 2) : null,
+    state: (o.state && STATES.has(String(o.state).trim().toUpperCase())) ? String(o.state).trim().toUpperCase() : null,
     sourceUrl: o.sourceUrl,
     sourceName: o.sourceName,
     updatedAt: iso(o.updatedAt) || new Date().toISOString(),
