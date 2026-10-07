@@ -24,6 +24,7 @@
   .item .cat { font:11px var(--font-mono); letter-spacing:.08em; text-transform:uppercase; color:var(--ink3) } .item .cat.public-safety { color:var(--warn) }
   .item h3 { font:700 17px/1.25 var(--font-display); margin:4px 0 4px } .item h3 a { color:inherit; text-decoration:none } .item h3 a:hover { text-decoration:underline }
   .item p { margin:0 0 6px; color:var(--ink2); font-size:15px } .item .meta { font:12px var(--font-mono); color:var(--ink3) }
+  details.wide { margin:18px 0 10px } details.wide summary { cursor:pointer; font:600 14px var(--font-display); color:var(--ink2); padding:10px 0; list-style:none } details.wide summary::before { content:"▸ "; color:var(--ink3) } details.wide[open] summary::before { content:"▾ " }
   .empty { color:var(--ink3); padding:24px; text-align:center; border:1px dashed var(--line); border-radius:12px }
   footer { margin-top:32px; font-size:13px; color:var(--ink3) }
 </style>
@@ -72,18 +73,18 @@
     const stateTile = await get("tiles/state-" + (await stateFor(zip)) + ".json").catch(() => null);
     const tiles = await Promise.all(names.map(n => get(`tiles/${n}.json`)));
     const national = await get("tiles/national.json");
-    let items = tiles.flat().filter(Boolean).map(it => ({ ...it, d: miles(lat, lon, it.lat, it.lon) })).filter(it => it.d <= radius);
-    items = items.concat((stateTile || []).map(it => ({ ...it, d: null })), (national || []).map(it => ({ ...it, d: null })));
-    items = items.filter(it => on.has(it.category));
-    items.sort((a, b) => (a.category === "public-safety" ? 0 : 1) - (b.category === "public-safety" ? 0 : 1) || (a.starts || "9").localeCompare(b.starts || "9") || (a.d ?? 1e9) - (b.d ?? 1e9));
+    const bySafetyThenDate = (a, b) => (a.category === "public-safety" ? 0 : 1) - (b.category === "public-safety" ? 0 : 1) || (a.starts || "9").localeCompare(b.starts || "9") || (a.d ?? 1e9) - (b.d ?? 1e9);
+    const local = tiles.flat().filter(Boolean).map(it => ({ ...it, d: miles(lat, lon, it.lat, it.lon) })).filter(it => it.d <= radius && on.has(it.category)).sort(bySafetyThenDate);
+    const wide = [...(stateTile || []), ...(national || [])].map(it => ({ ...it, d: null })).filter(it => on.has(it.category)).sort((a, b) => (b.starts || "").localeCompare(a.starts || ""));
     const built = index?.builtAt ? new Date(index.builtAt).toLocaleString() : "?";
-    $("#status").textContent = `${items.length} items within ${radius} mi of ${zip} · data built ${built}${index?.stale?.length ? " · stale: " + index.stale.join(", ") : ""}`;
-    $("#list").innerHTML = items.length ? items.map(it => `
+    $("#status").textContent = `${local.length} nearby · ${wide.length} statewide or nationwide · within ${radius} mi of ${zip} · data built ${built}${index?.stale?.length ? " · stale: " + index.stale.join(", ") : ""}`;
+    const card = it => `
       <article class="item"><div class="cat ${it.category}">${esc(CATS[it.category] || it.category)}${it.d != null ? ` · ${it.d.toFixed(0)} mi` : it.state ? " · statewide" : " · nationwide"}</div>
       <h3><a href="${esc(it.sourceUrl)}" target="_blank" rel="noopener">${esc(it.title)}</a></h3>
       ${it.summary ? `<p>${esc(it.summary)}</p>` : ""}
-      <div class="meta">${esc([when(it), it.place, it.sourceName].filter(Boolean).join(" · "))}</div></article>`).join("")
-      : `<div class="empty">Nothing in these categories within ${radius} miles. Try a wider radius.</div>`;
+      <div class="meta">${esc([when(it), it.place, it.sourceName].filter(Boolean).join(" · "))}</div></article>`;
+    $("#list").innerHTML = (local.length ? local.map(card).join("") : `<div class="empty">Nothing nearby in these categories within ${radius} miles. Try a wider radius.</div>`)
+      + (wide.length ? `<details class="wide"><summary>${wide.length} statewide and nationwide notices (recalls, elections)</summary>${wide.map(card).join("")}</details>` : "");
   }
   // State for a ZIP: from the Open Chambers ZIP table (same site), falling back to the first digit's region.
   let zipState = null;
