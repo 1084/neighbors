@@ -1,0 +1,29 @@
+{
+ "total": "2",
+ "limit": "500",
+ "start": "0",
+ "data": [
+  {
+   "id": "p1",
+   "url": "https://www.nps.gov/gwmp/index.htm",
+   "fullName": "George Washington Memorial Parkway",
+   "parkCode": "gwmp",
+   "description": "A scenic parkway along the Potomac.",
+   "latitude": "38.8",
+   "longitude": "-77.05",
+   "states": "VA,MD,DC",
+   "designation": "Parkway"
+  },
+  {
+   "id": "p2",
+   "url": "https://www.nps.gov/romo/index.htm",
+   "fullName": "Rocky Mountain National Park",
+   "parkCode": "romo",
+   "description": "Peaks and alpine tundra.",
+   "latitude": "40.3428",
+   "longitude": "-105.6836",
+   "states": "CO",
+   "designation": "National Park"
+  }
+ ]
+}

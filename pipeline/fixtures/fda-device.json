@@ -1,0 +1,26 @@
+{
+ "meta": {
+  "results": {
+   "skip": 0,
+   "limit": 100,
+   "total": 1
+  }
+ },
+ "results": [
+  {
+   "recall_number": "F-D-0001-2027",
+   "reason_for_recall": "Labeling error",
+   "status": "Ongoing",
+   "distribution_pattern": "VA, MD, DC",
+   "product_description": "Sample device product 12 oz",
+   "recall_initiation_date": "20260925",
+   "state": "VA",
+   "city": "Richmond",
+   "classification": "Class II",
+   "recalling_firm": "Sample Co",
+   "report_date": "20261001",
+   "event_id": "9900device",
+   "product_type": "Device"
+  }
+ ]
+}

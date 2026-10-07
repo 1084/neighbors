@@ -1,0 +1,52 @@
+{
+  "builtAt": "2026-10-07T19:44:43.299Z",
+  "tileDeg": 2,
+  "items": 15,
+  "feeds": {
+    "nws": {
+      "count": 2,
+      "fetched": 2,
+      "stale": false,
+      "error": null
+    },
+    "recalls": {
+      "count": 4,
+      "fetched": 4,
+      "stale": false,
+      "error": null
+    },
+    "nps": {
+      "count": 4,
+      "fetched": 4,
+      "stale": false,
+      "error": null
+    },
+    "ridb": {
+      "count": 1,
+      "fetched": 1,
+      "stale": false,
+      "error": null
+    },
+    "usda": {
+      "count": 2,
+      "fetched": 2,
+      "stale": false,
+      "error": null
+    },
+    "civic": {
+      "count": 2,
+      "fetched": 2,
+      "stale": false,
+      "error": null
+    }
+  },
+  "stale": [],
+  "tiles": {
+    "38_-78": 4,
+    "40_-106": 3,
+    "national": 4,
+    "state-VA": 2,
+    "38_-80": 1,
+    "36_-82": 1
+  }
+}

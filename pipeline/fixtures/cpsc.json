@@ -1,0 +1,29 @@
+[
+ {
+  "RecallID": 11013,
+  "RecallNumber": "27003",
+  "RecallDate": "2026-10-01T00:00:00",
+  "Description": "Squishy toys with water beads.",
+  "URL": "https://www.cpsc.gov/Recalls/2027/sample",
+  "Title": "ABC Trading Recalls Squishy Toys Due to Ingestion Hazard",
+  "ConsumerContact": "email",
+  "LastPublishDate": "2026-10-01T00:00:00",
+  "Products": [
+   {
+    "Name": "Squishy Dumpling Toys",
+    "Type": "Toys",
+    "NumberOfUnits": "About 37,000"
+   }
+  ],
+  "Hazards": [
+   {
+    "Name": "The water beads can expand, posing an ingestion hazard."
+   }
+  ],
+  "Remedies": [
+   {
+    "Name": "Refund"
+   }
+  ]
+ }
+]

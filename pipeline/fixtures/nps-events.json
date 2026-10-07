@@ -1,0 +1,23 @@
+{
+ "data": [
+  {
+   "id": "e1",
+   "title": "Ranger walk: Great Falls",
+   "parkcode": "gwmp",
+   "description": "<p>A 1-mile guided walk.</p>",
+   "dates": [
+    "2026-10-11"
+   ],
+   "times": [
+    {
+     "timestart": "10:00 AM",
+     "timeend": "11:30 AM"
+    }
+   ],
+   "latitude": "38.998",
+   "longitude": "-77.253",
+   "location": "Great Falls Park visitor center",
+   "infourl": "https://www.nps.gov/grfa"
+  }
+ ]
+}

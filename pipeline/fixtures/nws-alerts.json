@@ -1,0 +1,110 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.111",
+   "type": "Feature",
+   "geometry": null,
+   "properties": {
+    "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.111",
+    "id": "urn:oid:2.49.0.1.840.0.111",
+    "areaDesc": "Fairfax; Arlington; Alexandria",
+    "geocode": {
+     "SAME": [
+      "051059"
+     ],
+     "UGC": [
+      "VAC059",
+      "VAC013"
+     ]
+    },
+    "sent": "2026-10-07T17:40:00-04:00",
+    "effective": "2026-10-07T17:40:00-04:00",
+    "onset": "2026-10-07T18:00:00-04:00",
+    "expires": "2026-10-08T02:00:00-04:00",
+    "ends": "2026-10-08T06:00:00-04:00",
+    "status": "Actual",
+    "messageType": "Alert",
+    "category": "Met",
+    "severity": "Severe",
+    "certainty": "Likely",
+    "urgency": "Expected",
+    "event": "Flood Watch",
+    "senderName": "NWS Baltimore MD/Washington DC",
+    "headline": "Flood Watch issued October 7 at 5:40PM EDT until October 8 at 6:00AM EDT",
+    "description": "Heavy rain expected.\n\nAdditional details.",
+    "instruction": "Monitor forecasts."
+   }
+  },
+  {
+   "id": "x",
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -105.1,
+       40.0
+      ],
+      [
+       -104.9,
+       40.0
+      ],
+      [
+       -104.9,
+       40.2
+      ],
+      [
+       -105.1,
+       40.2
+      ],
+      [
+       -105.1,
+       40.0
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.222",
+    "id": "urn:oid:2.49.0.1.840.0.222",
+    "areaDesc": "Boulder County",
+    "geocode": {
+     "UGC": [
+      "COZ039"
+     ]
+    },
+    "sent": "2026-10-07T12:00:00-06:00",
+    "onset": "2026-10-07T12:00:00-06:00",
+    "expires": "2026-10-07T20:00:00-06:00",
+    "ends": null,
+    "status": "Actual",
+    "messageType": "Alert",
+    "severity": "Moderate",
+    "event": "Red Flag Warning",
+    "senderName": "NWS Boulder CO",
+    "headline": "Red Flag Warning until 8 PM MDT",
+    "description": "Critical fire weather."
+   }
+  },
+  {
+   "id": "y",
+   "type": "Feature",
+   "geometry": null,
+   "properties": {
+    "id": "urn:minor",
+    "areaDesc": "Somewhere",
+    "geocode": {
+     "UGC": [
+      "TXZ001"
+     ]
+    },
+    "severity": "Minor",
+    "event": "Dense Fog Advisory",
+    "sent": "2026-10-07T10:00:00Z",
+    "expires": "2026-10-07T15:00:00Z"
+   }
+  }
+ ]
+}

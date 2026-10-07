@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neighbors — what's happening near you</title>
+<meta name="description" content="Enter a ZIP and a radius. Official civic feeds only: weather alerts, parks, farmers markets, elections, recalls. No account, no tracking.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+  :root { --bg:#f3f4f0; --surface:#fff; --ink:#1c2321; --ink2:#4f5854; --ink3:#7f8884; --line:#dcdfd8; --accent:#2f6b4b; --accent-soft:#e2efe6; --warn:#8a5a0b; --warn-soft:#fbeacb;
+    --font-display:"Manrope","Helvetica Neue",Arial,sans-serif; --font-body:"Source Sans 3","Segoe UI",Helvetica,Arial,sans-serif; --font-mono:"JetBrains Mono",Menlo,monospace; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#121614; --surface:#1a1f1c; --ink:#e7eae6; --ink2:#aeb5b0; --ink3:#7f8884; --line:#2b322e; --accent:#7cc39a; --accent-soft:#1d2f25; --warn:#f0c169; --warn-soft:#3a2d10; } }
+  * { box-sizing:border-box } body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 var(--font-body); -webkit-font-smoothing:antialiased }
+  .wrap { max-width:760px; margin:0 auto; padding:28px 16px 64px }
+  h1 { font:800 28px/1.1 var(--font-display); letter-spacing:-.02em; margin:0 0 4px } .sub { color:var(--ink2); margin:0 0 20px }
+  form { display:grid; grid-template-columns:1fr auto; gap:8px; margin-bottom:12px }
+  input { font:inherit; font-size:18px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink) }
+  .seg { display:flex; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--surface) }
+  .seg button { font:600 14px var(--font-display); padding:10px 14px; border:0; background:none; color:var(--ink2); cursor:pointer } .seg button[aria-pressed=true] { background:var(--accent); color:#fff }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 18px }
+  .chip { font:12px var(--font-mono); padding:4px 10px; border-radius:999px; border:1px solid var(--line); background:var(--surface); color:var(--ink2); cursor:pointer } .chip[aria-pressed=true] { background:var(--accent-soft); color:var(--accent); border-color:var(--accent) }
+  .status { font:12px var(--font-mono); color:var(--ink3); margin:0 0 14px }
+  .item { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:10px }
+  .item .cat { font:11px var(--font-mono); letter-spacing:.08em; text-transform:uppercase; color:var(--ink3) } .item .cat.public-safety { color:var(--warn) }
+  .item h3 { font:700 17px/1.25 var(--font-display); margin:4px 0 4px } .item h3 a { color:inherit; text-decoration:none } .item h3 a:hover { text-decoration:underline }
+  .item p { margin:0 0 6px; color:var(--ink2); font-size:15px } .item .meta { font:12px var(--font-mono); color:var(--ink3) }
+  .empty { color:var(--ink3); padding:24px; text-align:center; border:1px dashed var(--line); border-radius:12px }
+  footer { margin-top:32px; font-size:13px; color:var(--ink3) }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Neighbors</h1>
+  <p class="sub">What's happening near you, from official sources only. Your ZIP stays in this browser.</p>
+  <form id="f"><input id="zip" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" placeholder="ZIP code" required><div class="seg" id="radius"><button type="button" data-r="25" aria-pressed="true">25 mi</button><button type="button" data-r="50" aria-pressed="false">50 mi</button><button type="button" data-r="100" aria-pressed="false">100 mi</button></div></form>
+  <div class="chips" id="cats"></div>
+  <p class="status" id="status">Enter a ZIP to begin.</p>
+  <div id="list"></div>
+  <footer>Sources: National Weather Service, National Park Service, Recreation.gov, USDA, Voting Information Project, FDA and CPSC. Updated nightly; weather alerts hourly. No account, no location services, nothing collected. © 2026 John Hubert LLC</footer>
+</div>
+<script>
+(() => {
+  const DATA = "./data/";
+  const CATS = { "public-safety":"Safety", "elections":"Elections", "public-spaces":"Parks", "public-services":"Services", "governance":"Meetings", "volunteering":"Volunteer" };
+  const $ = s => document.querySelector(s);
+  const on = new Set(Object.keys(CATS));
+  let radius = 25, zcta = null, index = null;
+
+  const chips = $("#cats");
+  for (const [k, v] of Object.entries(CATS)) { const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = v; b.setAttribute("aria-pressed", "true"); b.onclick = () => { on.has(k) ? on.delete(k) : on.add(k); b.setAttribute("aria-pressed", String(on.has(k))); run(); }; chips.appendChild(b); }
+  $("#radius").onclick = e => { const b = e.target.closest("button"); if (!b) return; radius = +b.dataset.r; for (const x of $("#radius").children) x.setAttribute("aria-pressed", String(x === b)); run(); };
+  $("#f").onsubmit = e => { e.preventDefault(); run(); };
+  $("#zip").oninput = () => { if ($("#zip").value.length === 5) run(); };
+
+  const TILE = 2;
+  const tileName = (la, lo) => `${Math.floor(la / TILE) * TILE}_${Math.floor(lo / TILE) * TILE}`;
+  const tilesFor = (lat, lon, r) => { const dLat = r / 69, dLon = r / (69 * Math.max(Math.cos(lat * Math.PI / 180), .2)); const s = new Set();
+    for (let la = Math.floor((lat - dLat) / TILE) * TILE; la <= Math.floor((lat + dLat) / TILE) * TILE; la += TILE) for (let lo = Math.floor((lon - dLon) / TILE) * TILE; lo <= Math.floor((lon + dLon) / TILE) * TILE; lo += TILE) s.add(`${la}_${lo}`); return [...s]; };
+  const miles = (a, b, c, d) => { const t = x => x * Math.PI / 180, dl = t(c - a), dn = t(d - b); const h = Math.sin(dl / 2) ** 2 + Math.cos(t(a)) * Math.cos(t(c)) * Math.sin(dn / 2) ** 2; return 2 * 3958.8 * Math.asin(Math.sqrt(h)); };
+  const zipPoint = z => { if (zcta[z]) return zcta[z]; const p = z.slice(0, 3); const k = Object.keys(zcta).filter(x => x.startsWith(p)).sort((a, b) => Math.abs(a - z) - Math.abs(b - z))[0]; return k ? zcta[k] : null; };
+  const get = async p => { const r = await fetch(DATA + p, { cache: "no-cache" }); return r.ok ? r.json() : null; };
+  const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+  const when = it => { if (!it.starts) return ""; const d = new Date(it.starts); const s = d.toLocaleDateString(undefined, { weekday:"short", month:"short", day:"numeric" }) + (!/T(00|12):00:00/.test(it.starts) ? " " + d.toLocaleTimeString(undefined, { hour:"numeric", minute:"2-digit" }) : ""); return it.ends ? `${s} → ${new Date(it.ends).toLocaleDateString(undefined, { month:"short", day:"numeric" })}` : s; };
+
+  async function run() {
+    const zip = $("#zip").value.trim(); if (!/^\d{5}$/.test(zip)) return;
+    $("#status").textContent = "Loading…";
+    zcta ||= await get("zcta.json"); index ||= await get("tiles/index.json");
+    const pt = zipPoint(zip); if (!pt) { $("#status").textContent = "That ZIP isn't in the table yet."; return; }
+    const [lat, lon] = pt;
+    const names = tilesFor(lat, lon, radius).filter(n => index?.tiles?.[n]);
+    const stateTile = await get("tiles/state-" + (await stateFor(zip)) + ".json").catch(() => null);
+    const tiles = await Promise.all(names.map(n => get(`tiles/${n}.json`)));
+    const national = await get("tiles/national.json");
+    let items = tiles.flat().filter(Boolean).map(it => ({ ...it, d: miles(lat, lon, it.lat, it.lon) })).filter(it => it.d <= radius);
+    items = items.concat((stateTile || []).map(it => ({ ...it, d: null })), (national || []).map(it => ({ ...it, d: null })));
+    items = items.filter(it => on.has(it.category));
+    items.sort((a, b) => (a.category === "public-safety" ? 0 : 1) - (b.category === "public-safety" ? 0 : 1) || (a.starts || "9").localeCompare(b.starts || "9") || (a.d ?? 1e9) - (b.d ?? 1e9));
+    const built = index?.builtAt ? new Date(index.builtAt).toLocaleString() : "?";
+    $("#status").textContent = `${items.length} items within ${radius} mi of ${zip} · data built ${built}${index?.stale?.length ? " · stale: " + index.stale.join(", ") : ""}`;
+    $("#list").innerHTML = items.length ? items.map(it => `
+      <article class="item"><div class="cat ${it.category}">${esc(CATS[it.category] || it.category)}${it.d != null ? ` · ${it.d.toFixed(0)} mi` : it.state ? " · statewide" : " · nationwide"}</div>
+      <h3><a href="${esc(it.sourceUrl)}" target="_blank" rel="noopener">${esc(it.title)}</a></h3>
+      ${it.summary ? `<p>${esc(it.summary)}</p>` : ""}
+      <div class="meta">${esc([when(it), it.place, it.sourceName].filter(Boolean).join(" · "))}</div></article>`).join("")
+      : `<div class="empty">Nothing in these categories within ${radius} miles. Try a wider radius.</div>`;
+  }
+  // State for a ZIP: from the Open Chambers ZIP table (same site), falling back to the first digit's region.
+  let zipState = null;
+  async function stateFor(zip) { try { zipState ||= await (await fetch("https://johnhubert.llc/floor/data/zip.json")).json(); const e = zipState[zip]; const st = Array.isArray(e) ? String(e[0] || "").split("-")[0] : null; if (st) return st.toUpperCase(); } catch {} return "XX"; }
+})();
+</script>
+</body>
+</html>

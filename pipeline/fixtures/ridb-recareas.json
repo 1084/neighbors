@@ -1,0 +1,25 @@
+{
+ "RECDATA": [
+  {
+   "RecAreaID": 2725,
+   "RecAreaName": "Shenandoah National Park",
+   "RecAreaDescription": "<p>Skyline Drive and 500 miles of trails.</p>",
+   "RecAreaLatitude": 38.4755,
+   "RecAreaLongitude": -78.4535,
+   "Enabled": true,
+   "LastUpdatedDate": "2026-09-30"
+  },
+  {
+   "RecAreaID": 1,
+   "RecAreaName": "No location area",
+   "RecAreaLatitude": 0,
+   "RecAreaLongitude": 0
+  }
+ ],
+ "METADATA": {
+  "RESULTS": {
+   "CURRENT_COUNT": 2,
+   "TOTAL_COUNT": 2
+  }
+ }
+}

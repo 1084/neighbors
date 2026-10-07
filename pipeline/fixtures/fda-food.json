@@ -1,0 +1,26 @@
+{
+ "meta": {
+  "results": {
+   "skip": 0,
+   "limit": 100,
+   "total": 1
+  }
+ },
+ "results": [
+  {
+   "recall_number": "F-F-0001-2027",
+   "reason_for_recall": "Undeclared milk allergen",
+   "status": "Ongoing",
+   "distribution_pattern": "Nationwide",
+   "product_description": "Sample food product 12 oz",
+   "recall_initiation_date": "20260925",
+   "state": "VA",
+   "city": "Richmond",
+   "classification": "Class II",
+   "recalling_firm": "Sample Co",
+   "report_date": "20261001",
+   "event_id": "9900food",
+   "product_type": "Food"
+  }
+ ]
+}

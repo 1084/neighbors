@@ -1,0 +1,47 @@
+name: data
+
+on:
+  schedule:
+    - cron: "23 7 * * *"        # 07:23 UTC nightly (the floor pipeline runs at 07:17; keep them apart)
+  workflow_dispatch:
+    inputs:
+      feeds:
+        description: "Comma-separated feed ids to run (blank = all)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Tests
+        run: npm test
+      - name: ZCTA table (first run only, then committed)
+        run: test -s data/zcta.json && node -e "const z=require('./data/zcta.json'); if(Object.keys(z).length<30000) process.exit(1)" || npm run zcta
+      - name: Build
+        env:
+          FEEDS: ${{ github.event.inputs.feeds }}
+          NPS_API_KEY: ${{ secrets.NPS_API_KEY }}
+          RIDB_API_KEY: ${{ secrets.RIDB_API_KEY }}
+          USDA_API_KEY: ${{ secrets.USDA_API_KEY }}
+          GOOGLE_CIVIC_KEY: ${{ secrets.GOOGLE_CIVIC_KEY }}
+          FDA_API_KEY: ${{ secrets.FDA_API_KEY }}
+        run: npm run build
+      - name: Commit data
+        run: |
+          git config user.name "neighbors-data"
+          git config user.email "support@johnhubert.llc"
+          git add data docs/data
+          git diff --cached --quiet && echo "no changes" || git commit -m "data: nightly build $(date -u +%F)"
+          git push

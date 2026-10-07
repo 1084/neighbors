@@ -1,0 +1,15 @@
+{
+  "name": "neighbors",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Neighbors data pipeline: official civic feeds, normalized and tiled for a ZIP + radius lookup.",
+  "scripts": {
+    "build": "node pipeline/build.mjs",
+    "build:fixtures": "FIXTURES=1 node pipeline/build.mjs",
+    "zcta": "node pipeline/zcta.mjs",
+    "tiles": "node pipeline/tilecheck.mjs",
+    "test": "node --test pipeline/test/*.test.mjs"
+  },
+  "engines": { "node": ">=22" }
+}

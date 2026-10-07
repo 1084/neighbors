@@ -1,0 +1,17 @@
+{
+ "kind": "civicinfo#electionsQueryResponse",
+ "elections": [
+  {
+   "id": "2000",
+   "name": "VIP Test Election",
+   "electionDay": "2027-06-06",
+   "ocdDivisionId": "ocd-division/country:us"
+  },
+  {
+   "id": "9312",
+   "name": "Virginia General Election",
+   "electionDay": "2026-11-03",
+   "ocdDivisionId": "ocd-division/country:us/state:va"
+  }
+ ]
+}
