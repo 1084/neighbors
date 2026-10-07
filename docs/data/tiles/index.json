@@ -1,52 +1,72 @@
 {
-  "builtAt": "2026-10-07T19:44:43.299Z",
+  "builtAt": "2026-10-07T21:37:27.320Z",
   "tileDeg": 2,
-  "items": 15,
+  "items": 370,
   "feeds": {
     "nws": {
       "count": 2,
-      "fetched": 2,
-      "stale": false,
-      "error": null
+      "fetched": 0,
+      "stale": true,
+      "error": "Cannot read properties of undefined (reading '0')"
     },
     "recalls": {
-      "count": 4,
-      "fetched": 4,
+      "count": 368,
+      "fetched": 368,
       "stale": false,
       "error": null
     },
     "nps": {
-      "count": 4,
-      "fetched": 4,
+      "count": 0,
+      "fetched": 0,
       "stale": false,
       "error": null
     },
     "ridb": {
-      "count": 1,
-      "fetched": 1,
+      "count": 0,
+      "fetched": 0,
       "stale": false,
       "error": null
     },
     "usda": {
-      "count": 2,
-      "fetched": 2,
+      "count": 0,
+      "fetched": 0,
       "stale": false,
       "error": null
     },
     "civic": {
-      "count": 2,
-      "fetched": 2,
+      "count": 0,
+      "fetched": 0,
       "stale": false,
       "error": null
     }
   },
-  "stale": [],
+  "stale": [
+    "nws"
+  ],
   "tiles": {
-    "38_-78": 4,
-    "40_-106": 3,
-    "national": 4,
-    "state-VA": 2,
-    "38_-80": 1,
-    "36_-82": 1
+    "38_-78": 1,
+    "40_-106": 1,
+    "state-MN": 5,
+    "state-HI": 1,
+    "state-CA": 29,
+    "state-TX": 22,
+    "state-VA": 7,
+    "national": 271,
+    "state-FL": 5,
+    "state-NV": 1,
+    "state-MD": 7,
+    "state-NJ": 2,
+    "state-NY": 2,
+    "state-ME": 1,
+    "state-PA": 2,
+    "state-NC": 1,
+    "state-CT": 1,
+    "state-WI": 4,
+    "state-N/": 1,
+    "state-OR": 1,
+    "state-ID": 1,
+    "state-OH": 1,
+    "state-IL": 2,
+    "state-MO": 1
   }
 }
