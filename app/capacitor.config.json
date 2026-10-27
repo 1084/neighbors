@@ -1,0 +1,15 @@
+{
+  "appId": "com.johnhubert.civicboard",
+  "appName": "Civic Board",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#f3f4f0",
+    "scheme": "Civic Board"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
+}

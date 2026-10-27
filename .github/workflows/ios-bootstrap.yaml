@@ -1,0 +1,46 @@
+name: ios-bootstrap
+# Run ONCE (Actions → ios-bootstrap → Run workflow). Generates the Xcode project
+# (app/ios) on a macOS runner, sets the icon and Info.plist, and commits it back
+# to main. After that, ios-release builds from the committed project. Re-run only
+# if you delete app/ios on purpose.
+on:
+  workflow_dispatch: {}
+permissions: { contents: write }
+jobs:
+  bootstrap:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Generate the iOS project
+        working-directory: app
+        run: |
+          set -e
+          test ! -d ios || { echo "app/ios already exists; delete it first if you really want to regenerate"; exit 1; }
+          npm install --no-audit --no-fund
+          npm run prepare-www
+          npx cap add ios
+          npx @capacitor/assets generate --ios --iconBackgroundColor '#2f6b4b' --iconBackgroundColorDark '#2f6b4b' --assetPath resources
+          npx cap sync ios
+      - name: Info.plist
+        working-directory: app/ios/App/App
+        run: |
+          set -e
+          P=Info.plist
+          /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" $P || /usr/libexec/PlistBuddy -c "Set :ITSAppUsesNonExemptEncryption false" $P
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName 'Civic Board'" $P
+          /usr/libexec/PlistBuddy -c "Add :UIRequiresFullScreen bool true" $P || true
+          /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations~ipad" $P || true
+          /usr/libexec/PlistBuddy -c "Set :UISupportedInterfaceOrientations:0 UIInterfaceOrientationPortrait" $P
+          /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations:1" $P || true
+          /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations:1" $P || true
+          plutil -lint $P
+      - name: Commit app/ios
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/ios app/package-lock.json
+          git commit -m "ios: generated Xcode project (Capacitor) for Civic Board" || echo "nothing to commit"
+          git push
