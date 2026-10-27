@@ -1,0 +1,177 @@
+{
+ "LanguageCode": "EN",
+ "SearchParameters": {},
+ "SearchResult": {
+  "SearchResultCount": 3,
+  "SearchResultCountAll": 3,
+  "SearchResultItems": [
+   {
+    "MatchedObjectId": "830011200",
+    "RelevanceRank": 0,
+    "MatchedObjectDescriptor": {
+     "PositionID": "VA-26-12345",
+     "PositionTitle": "Registered Nurse (Community Living Center)",
+     "PositionURI": "https://www.usajobs.gov/job/830011200",
+     "OrganizationName": "Veterans Health Administration",
+     "DepartmentName": "Department of Veterans Affairs",
+     "PositionLocationDisplay": "Richmond, Virginia",
+     "PositionLocation": [
+      {
+       "LocationName": "Richmond, Virginia",
+       "CountryCode": "United States",
+       "CountrySubDivisionCode": "Virginia",
+       "CityName": "Richmond",
+       "Longitude": -77.436,
+       "Latitude": 37.5407
+      }
+     ],
+     "JobCategory": [
+      {
+       "Name": "Nurse",
+       "Code": "0610"
+      }
+     ],
+     "PositionSchedule": [
+      {
+       "Name": "Full-time",
+       "Code": "1"
+      }
+     ],
+     "PositionRemuneration": [
+      {
+       "MinimumRange": "72553.0",
+       "MaximumRange": "136245.0",
+       "RateIntervalCode": "PA",
+       "Description": "Per Year"
+      }
+     ],
+     "PublicationStartDate": "2026-10-20T00:00:00.0000",
+     "ApplicationCloseDate": "2026-11-14T23:59:59.9970",
+     "UserArea": {
+      "Details": {
+       "JobSummary": "The Richmond VA Medical Center is recruiting a Registered Nurse for the Community Living Center. Rotating shifts.",
+       "WhoMayApply": {
+        "Name": "",
+        "Code": ""
+       }
+      }
+     }
+    }
+   },
+   {
+    "MatchedObjectId": "830022311",
+    "RelevanceRank": 0,
+    "MatchedObjectDescriptor": {
+     "PositionID": "FS-26-998",
+     "PositionTitle": "Forestry Technician (Recreation)",
+     "PositionURI": "https://www.usajobs.gov/job/830022311",
+     "OrganizationName": "Forest Service",
+     "DepartmentName": "Department of Agriculture",
+     "PositionLocationDisplay": "Multiple Locations",
+     "PositionLocation": [
+      {
+       "LocationName": "Harrisonburg, Virginia",
+       "CountryCode": "United States",
+       "CountrySubDivisionCode": "Virginia",
+       "CityName": "Harrisonburg",
+       "Longitude": -78.8689,
+       "Latitude": 38.4496
+      },
+      {
+       "LocationName": "Elkins, West Virginia",
+       "CountryCode": "United States",
+       "CountrySubDivisionCode": "West Virginia",
+       "CityName": "Elkins",
+       "Longitude": -79.8467,
+       "Latitude": 38.9257
+      }
+     ],
+     "JobCategory": [
+      {
+       "Name": "Forestry Technician",
+       "Code": "0462"
+      }
+     ],
+     "PositionSchedule": [
+      {
+       "Name": "Full-time",
+       "Code": "1"
+      }
+     ],
+     "PositionRemuneration": [
+      {
+       "MinimumRange": "18.5",
+       "MaximumRange": "24.1",
+       "RateIntervalCode": "PH",
+       "Description": "Per Hour"
+      }
+     ],
+     "PublicationStartDate": "2026-10-22T00:00:00.0000",
+     "ApplicationCloseDate": "2026-11-05T23:59:59.9970",
+     "UserArea": {
+      "Details": {
+       "JobSummary": "Seasonal recreation technician on the George Washington and Jefferson National Forests.",
+       "WhoMayApply": {
+        "Name": "",
+        "Code": ""
+       }
+      }
+     }
+    }
+   },
+   {
+    "MatchedObjectId": "830033422",
+    "RelevanceRank": 0,
+    "MatchedObjectDescriptor": {
+     "PositionID": "IRS-26-REMOTE",
+     "PositionTitle": "Contact Representative",
+     "PositionURI": "https://www.usajobs.gov/job/830033422",
+     "OrganizationName": "Internal Revenue Service",
+     "DepartmentName": "Department of the Treasury",
+     "PositionLocationDisplay": "Anywhere in the U.S. (remote job)",
+     "PositionLocation": [
+      {
+       "LocationName": "Anywhere in the U.S. (remote job)",
+       "CountryCode": "United States",
+       "CountrySubDivisionCode": "",
+       "CityName": "",
+       "Longitude": 0,
+       "Latitude": 0
+      }
+     ],
+     "JobCategory": [
+      {
+       "Name": "Contact Representative",
+       "Code": "0962"
+      }
+     ],
+     "PositionSchedule": [
+      {
+       "Name": "Full-time",
+       "Code": "1"
+      }
+     ],
+     "PositionRemuneration": [
+      {
+       "MinimumRange": "40000.0",
+       "MaximumRange": "52000.0",
+       "RateIntervalCode": "PA",
+       "Description": "Per Year"
+      }
+     ],
+     "PublicationStartDate": "2026-10-23T00:00:00.0000",
+     "ApplicationCloseDate": "2026-11-30T23:59:59.9970",
+     "UserArea": {
+      "Details": {
+       "JobSummary": "Remote. Not placeable; the adapter drops it.",
+       "WhoMayApply": {
+        "Name": "",
+        "Code": ""
+       }
+      }
+     }
+    }
+   }
+  ]
+ }
+}

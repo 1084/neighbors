@@ -22,7 +22,7 @@
   .chip { font:12px var(--font-mono); padding:4px 10px; border-radius:999px; border:1px solid var(--line); background:var(--surface); color:var(--ink2); cursor:pointer } .chip[aria-pressed=true] { background:var(--accent-soft); color:var(--accent); border-color:var(--accent) }
   .status { font:12px var(--font-mono); color:var(--ink3); margin:0 0 14px }
   .item { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:10px }
-  .item .cat { font:11px var(--font-mono); letter-spacing:.08em; text-transform:uppercase; color:var(--ink3) } .item .cat.public-safety { color:var(--warn) }
+  .item .cat { font:11px var(--font-mono); letter-spacing:.08em; text-transform:uppercase; color:var(--ink3) } .item .cat.public-safety { color:var(--warn) } .item .cat.work { color:var(--accent) }
   .item h3 { font:700 17px/1.25 var(--font-display); margin:4px 0 4px } .item h3 a { color:inherit; text-decoration:none } .item h3 a:hover { text-decoration:underline }
   .item p { margin:0 0 6px; color:var(--ink2); font-size:15px } .item .meta { font:12px var(--font-mono); color:var(--ink3) }
   details.wide { margin:18px 0 10px } details.wide summary { cursor:pointer; font:600 14px var(--font-display); color:var(--ink2); padding:10px 0; list-style:none } details.wide summary::before { content:"▸ "; color:var(--ink3) } details.wide[open] summary::before { content:"▾ " }
@@ -43,7 +43,7 @@
 <script>
 (() => {
   const DATA = window.CIVIC_DATA || "./data/";
-  const CATS = { "public-safety":"Safety", "elections":"Elections", "public-spaces":"Parks", "public-services":"Services", "governance":"Meetings", "volunteering":"Volunteer" };
+  const CATS = { "public-safety":"Safety", "work":"Jobs", "elections":"Elections", "public-spaces":"Parks", "public-services":"Services", "governance":"Meetings", "volunteering":"Volunteer", "education":"Schools", "health":"Health", "kids-and-family":"Kids" };
   const $ = s => document.querySelector(s);
   const on = new Set(Object.keys(CATS));
   let radius = 25, zcta = null, index = null;

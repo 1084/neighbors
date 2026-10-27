@@ -9,7 +9,7 @@ export const OUT = resolve(ROOT, "docs/data");
 export const FIXTURES = resolve(ROOT, "pipeline/fixtures");
 export const USER_AGENT = "neighbors-pipeline (johnhubert.llc; support@johnhubert.llc)";
 export const STATES = new Set("AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY PR GU VI AS MP".split(" "));
-export const CATEGORIES = ["governance", "elections", "public-spaces", "public-services", "volunteering", "public-safety"];
+export const CATEGORIES = ["governance", "elections", "public-spaces", "public-services", "volunteering", "public-safety", "work", "education", "health", "kids-and-family"];
 
 export const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
 

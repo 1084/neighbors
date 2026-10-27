@@ -14,9 +14,11 @@
 
 ## Categories (the fence)
 
-governance · elections · public-spaces · public-services · volunteering · public-safety
+governance · elections · public-spaces · public-services · volunteering · public-safety · work · education · health · kids-and-family
 
 If an item fits none of these, it does not belong here.
+
+The four added on 2026-10-27 (work, education, health, kids-and-family) follow the same rule as the first six, with one test made explicit: **who is the author?** An item may come only from an institution with public accountability — a government body, a public employer, a school or district, a library, a registered nonprofit, a scout council, a volunteer fire company — never from an individual. A teenager offering to walk dogs is a post, not a feed, and belongs elsewhere. A public employer's job listing, a school's dance that needs chaperones, a council's cookie-booth schedule all pass. And every item must be placeable by ZIP from the source's own fields before it is shown as local.
 
 ## Contribution
 

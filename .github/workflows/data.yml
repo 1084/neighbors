@@ -37,6 +37,8 @@ jobs:
           USDA_API_KEY: ${{ secrets.USDA_API_KEY }}
           GOOGLE_CIVIC_KEY: ${{ secrets.GOOGLE_CIVIC_KEY }}
           FDA_API_KEY: ${{ secrets.FDA_API_KEY }}
+          USAJOBS_API_KEY: ${{ secrets.USAJOBS_API_KEY }}
+          USAJOBS_USER_AGENT: ${{ secrets.USAJOBS_USER_AGENT }}
         run: npm run build
       - name: Commit data
         run: |
