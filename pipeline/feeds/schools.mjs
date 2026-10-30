@@ -31,7 +31,7 @@ export default async function schools() {
   // export columns the 2024-25 file carries): X, OBJECTID, then the documented record.
   const LAYOUT = ["X", "OBJECTID", "SURVYEAR_N", "LEAID_N", "SCHID_N", "NCESSCH", "LEAID", "NAME", "OPSTFIPS", "STREET", "CITY", "STATE", "ZIP", "NMCNTY", "LAT", "LON", "CITY2", "STATE2", "LOCALE_TXT", "LOCALE_TXT2", "CBSA", "NMCBSA", "CBSATYPE", "CSA", "NMCSA", "NECTA", "NMNECTA", "CD", "SLDL", "SLDU", "SCHOOLYEAR"];
   const txt = zip.names.some(n => /\.(txt|csv)$/i.test(n)) ? zip.read(/\.(txt|csv)$/i) : null;
-  const headerless = txt && /^\d+\t\d+\t/.test(txt.subarray(0, 64).toString("utf8"));
+  const headerless = txt && /^\d+[\t,]\s*\d+[\t,]/.test(txt.subarray(0, 64).toString("utf8")); // first line is data, not names
   const rows = txt ? (headerless ? fitLayout(parseCsv(txt, { header: LAYOUT }), LAYOUT) : parseCsv(txt))
     : zip.names.some(n => /\.dbf$/i.test(n)) ? parseDbf(zip.read(/\.dbf$/i))
     : zip.names.some(n => /shapefile.*\.zip$/i.test(n)) ? parseDbf(zipEntries(zip.read(/shapefile.*\.zip$/i)).read(/\.dbf$/i))
