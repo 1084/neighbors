@@ -17,10 +17,13 @@ export default async function schools() {
     : zip.names.some(n => /shapefile.*\.zip$/i.test(n)) ? parseDbf(zipEntries(zip.read(/shapefile.*\.zip$/i)).read(/\.dbf$/i))
     : (() => { throw new Error(`no .txt/.csv/.dbf in archive; entries: ${zip.names.join(", ")}`); })();
   const items = [];
+  const first = rows[0] || {};
+  log(`schools: ${rows.length} rows; columns: ${Object.keys(first).slice(0, 30).join(", ")}`);
+  const pick = (r, ...names) => { for (const n of names) if (r[n] !== undefined && r[n] !== "") return r[n]; return ""; };
   for (const r of rows) {
-    const lat = +r.LAT, lon = +r.LON;
+    const lat = +pick(r, "LAT", "LATCOD", "LATITUDE", "Y"), lon = +pick(r, "LON", "LONCOD", "LONGITUDE", "X");
     if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat === 0) continue;
-    const id = r.NCESSCH; if (!id) continue;
+    const id = pick(r, "NCESSCH", "NCESSCH_ID", "SCHID"); if (!id) continue;
     items.push(item({
       id: `nces:${id}`, feedId: "schools", category: "education",
       title: titleCase(r.NAME),
@@ -30,6 +33,6 @@ export default async function schools() {
       sourceUrl: `https://nces.ed.gov/ccd/schoolsearch/school_detail.asp?ID=${id}`, sourceName: "NCES Common Core of Data",
     }));
   }
-  log(`schools: ${rows.length} rows → ${items.length} placed`);
+  log(`schools: ${rows.length} rows → ${items.length} placed${items.length === 0 && rows.length ? ` — first row: ${JSON.stringify(first).slice(0, 300)}` : ""}`);
   return items;
 }

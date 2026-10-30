@@ -54,7 +54,7 @@ export function zipEntries(buf) {
 export function parseCsv(text, { upper = true, sep } = {}) {
   if (Buffer.isBuffer(text)) text = text.toString("utf8");
   if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
-  sep ||= (text.slice(0, text.indexOf("\n")).includes("\t") ? "\t" : ","); // NCES .TXT files are tab-delimited
+  if (!sep) { const head = text.slice(0, text.indexOf("\n")); const tabs = (head.match(/\t/g) || []).length, commas = (head.match(/,/g) || []).length, pipes = (head.match(/\|/g) || []).length; sep = tabs >= commas && tabs >= pipes ? "\t" : pipes > commas ? "|" : ","; }
   const rows = []; let row = [], field = "", q = false;
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
