@@ -70,3 +70,21 @@ export function parseCsv(text, { upper = true } = {}) {
 
 export const phone = v => { const d = String(v || "").replace(/\D/g, ""); return d.length === 10 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : ""; };
 export const titleCase = s => String(s || "").toLowerCase().replace(/\b([a-z])/g, m => m.toUpperCase()).replace(/\b(Of|And|The|At|For|In|On)\b/g, m => m.toLowerCase()).replace(/^./, m => m.toUpperCase());
+
+/** Parse a dBase III/IV .dbf (the attribute table of a shapefile) into objects keyed by upper-cased field name. */
+export function parseDbf(buf) {
+  const count = buf.readUInt32LE(4), headerLen = buf.readUInt16LE(8), recLen = buf.readUInt16LE(10);
+  const fields = [];
+  for (let p = 32; p < headerLen - 1 && buf[p] !== 0x0d; p += 32) {
+    let name = buf.toString("latin1", p, p + 11); name = name.slice(0, name.indexOf("\0") >= 0 ? name.indexOf("\0") : 11).trim().toUpperCase();
+    fields.push({ name, type: String.fromCharCode(buf[p + 11]), len: buf[p + 16] });
+  }
+  const rows = [];
+  for (let i = 0, p = headerLen; i < count && p + recLen <= buf.length; i++, p += recLen) {
+    if (buf[p] === 0x2a) continue; // deleted
+    const row = {}; let q = p + 1;
+    for (const f of fields) { row[f.name] = buf.toString("latin1", q, q + f.len).trim(); q += f.len; }
+    rows.push(row);
+  }
+  return rows;
+}

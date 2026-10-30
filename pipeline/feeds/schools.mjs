@@ -2,7 +2,7 @@
 // https://nces.ed.gov/programs/edge/Geographic/SchoolLocations — the file carries each school's
 // address geocode; phone/website live in the separate CCD directory and are not included.
 import { item, log } from "../lib/util.mjs";
-import { fetchCached, zipEntries, parseCsv, titleCase } from "../lib/files.mjs";
+import { fetchCached, zipEntries, parseCsv, parseDbf, titleCase } from "../lib/files.mjs";
 
 const YEAR = process.env.NCES_YEAR || "2425";
 const URL = `https://nces.ed.gov/programs/edge/data/EDGE_GEOCODE_PUBLICSCH_${YEAR}.zip`;
@@ -10,7 +10,10 @@ const URL = `https://nces.ed.gov/programs/edge/data/EDGE_GEOCODE_PUBLICSCH_${YEA
 export default async function schools() {
   const buf = await fetchCached(URL, `nces-publicsch-${YEAR}.zip`, { fixture: "nces-publicsch.zip" });
   const zip = zipEntries(buf);
-  const rows = parseCsv(zip.read(/\.csv$/i));
+  // NCES ships xlsx + SAS + shapefile; the shapefile's .dbf is the same table and needs no library
+  const rows = zip.names.some(n => /\.dbf$/i.test(n)) ? parseDbf(zip.read(/\.dbf$/i))
+    : zip.names.some(n => /\.csv$/i.test(n)) ? parseCsv(zip.read(/\.csv$/i))
+    : (() => { throw new Error(`no .dbf or .csv in archive; entries: ${zip.names.join(", ")}`); })();
   const items = [];
   for (const r of rows) {
     const lat = +r.LAT, lon = +r.LON;
