@@ -3,7 +3,7 @@
 // Runs nightly in GitHub Actions (.github/workflows/data.yml) or locally: `npm run build`.
 // `npm run build:fixtures` runs the same code against pipeline/fixtures/ with no network.
 //
-// Feeds (see SOURCES.md): nws, recalls (no key) · nps, ridb, usda, civic, usajobs (key in env; skipped when absent).
+// Feeds (see SOURCES.md): nws, recalls (no key) · nps, ridb, usda, civic, usajobs (key in env; skipped when absent) · schools, libraries, healthcenters, hospitals (annual directories, no key; cached monthly in data/cache).
 // AirNow is hourly data and is served live by the Worker, not here.
 // A feed that fails or shrinks by half keeps its committed output (pipeline/lib/guard.mjs).
 
@@ -19,13 +19,17 @@ import ridb from "./feeds/ridb.mjs";
 import usda from "./feeds/usda.mjs";
 import civic from "./feeds/civic.mjs";
 import usajobs from "./feeds/usajobs.mjs";
+import schools from "./feeds/schools.mjs";
+import libraries from "./feeds/libraries.mjs";
+import healthcenters from "./feeds/healthcenters.mjs";
+import hospitals from "./feeds/hospitals.mjs";
 
 if (!existsSync(resolve(DATA, "zcta.json"))) {
   log("data/zcta.json missing — run `npm run zcta` first (downloads the Census ZCTA Gazetteer)");
   process.exit(1);
 }
 
-const FEEDS = { nws, recalls, nps, ridb, usda, civic, usajobs };
+const FEEDS = { nws, recalls, nps, ridb, usda, civic, usajobs, schools, libraries, healthcenters, hospitals };
 const only = process.env.FEEDS ? process.env.FEEDS.split(",") : Object.keys(FEEDS);
 
 const results = [];

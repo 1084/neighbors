@@ -6,3 +6,5 @@ app/node_modules/
 app/www/
 app/ios/App/Pods/
 app/ios/App/App.xcworkspace/xcuserdata/
+data/cache/*.zip
+data/cache/*.csv

@@ -1,0 +1,3 @@
+Health Center Name,Site Name,Site Address,Site City,Site State Abbreviation,Site Postal Code,Site Telephone Number,Site Web Address,Operating Hours per Week,Site Type Description,Site Status Description,BHCMIS Organization Identification Number,Geocoding Artifact Address Primary X Coordinate,Geocoding Artifact Address Primary Y Coordinate
+NEIGHBORHOOD HEALTH,NEIGHBORHOOD HEALTH AT ALEXANDRIA,2 EAST GLEBE RD,ALEXANDRIA,VA,22305,7035354433,www.neighborhoodhealthva.org,50,Service Delivery Site,Active,021234,-77.0523,38.8344
+OLD CLINIC,CLOSED SITE,1 MAIN ST,ALEXANDRIA,VA,22301,7030000000,,0,Service Delivery Site,Inactive,021235,-77.05,38.83
