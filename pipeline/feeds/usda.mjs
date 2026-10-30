@@ -11,7 +11,10 @@ export default async function usda() {
   const items = [];
   const states = process.env.FIXTURES ? ["VA"] : STATES;
   for (const st of states) {
-    const data = await fetchJson(`https://www.usdalocalfoodportal.com/api/farmersmarket/?apikey=${key}&state=${st.toLowerCase()}`, { fixture: `usda-${st}.json` }).catch(() => null);
+    let data = null;
+    try { data = await fetchJson(`https://www.usdalocalfoodportal.com/api/farmersmarket/?apikey=${key}&state=${st.toLowerCase()}`, { fixture: `usda-${st}.json` }); }
+    catch (e) { if (!items.length && st === states[0]) throw e; log(`usda ${st}: ${e.message}`); } // first state failing = probably the key; say so
+    if (st === states[0] && !process.env.FIXTURES) log(`usda ${st}: ${Array.isArray(data) ? data.length : data?.data?.length ?? "no"} rows${data && !Array.isArray(data) && !data.data ? " — unexpected shape: " + JSON.stringify(data).slice(0, 160) : ""}`);
     for (const m of (Array.isArray(data) ? data : data?.data || [])) {
       const zip = String(m.location_zipcode || "").slice(0, 5);
       const pt = (m.location_y && m.location_x) ? [+m.location_y, +m.location_x] : zipPoint(zip);

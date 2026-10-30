@@ -103,7 +103,7 @@
     const groups = Object.keys(CATS).map(c => [c, local.filter(it => it.category === c)]).filter(([, a]) => a.length);
     const section = ([c, a]) => { const all = showAll.has(c) || a.length <= PAGE; const shown = all ? a : a.slice(0, PAGE); return `<details class="sec" data-cat="${c}" ${openSecs.has(c) || q || groups.length === 1 ? "open" : ""}><summary>${esc(CATS[c])}<span class="n">${a.length}</span></summary>${shown.map(card).join("")}${all ? "" : `<button class="more" data-cat="${c}">Show all ${a.length}</button>`}</details>`; };
     $("#list").innerHTML = (groups.length ? groups.map(section).join("") : `<div class="empty">${q ? `Nothing nearby matches “${esc(q)}”.` : `Nothing nearby in these categories within ${radius} miles. Try a wider radius.`}</div>`)
-      + (wide.length ? `<details class="wide"><summary>${wide.length} statewide and nationwide notices (recalls, elections)</summary>${wide.map(card).join("")}</details>` : "");
+      + (wide.length ? `<details class="wide"><summary>${wide.length} statewide and nationwide notices (recalls, elections)</summary>${(() => { const g = Object.keys(CATS).map(c => [c, wide.filter(it => it.category === c)]).filter(([, a]) => a.length); return g.length > 1 ? g.map(([c, a]) => `<details class="sec" open><summary>${esc(CATS[c])}<span class="n">${a.length}</span></summary>${a.map(card).join("")}</details>`).join("") : null; })() ?? wide.map(card).join("")}</details>` : "");
     $("#list").querySelectorAll("details.sec").forEach(d => d.addEventListener("toggle", () => { d.open ? openSecs.add(d.dataset.cat) : openSecs.delete(d.dataset.cat); }));
     $("#list").querySelectorAll("button.more").forEach(b => b.onclick = () => { showAll.add(b.dataset.cat); run(); });
   }

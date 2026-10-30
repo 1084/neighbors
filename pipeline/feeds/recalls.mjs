@@ -15,7 +15,8 @@ export default async function recalls() {
     for (const r of data?.results || []) {
       const nationwide = /nationwide|all states|us\b|united states/i.test(r.distribution_pattern || "");
       items.push(item({
-        id: `fda:${r.recall_number}`, feedId: "recalls", category: "public-safety",
+        // device and drug recalls are for clinicians and pharmacies; food and consumer products are for everyone
+        id: `fda:${r.recall_number}`, feedId: "recalls", category: kind === "food" ? "public-safety" : "health",
         title: `${r.classification} ${kind} recall: ${firstWords(r.product_description, 10)}`,
         summary: r.reason_for_recall,
         starts: fdaDate(r.report_date), ends: null,
