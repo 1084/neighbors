@@ -10,10 +10,12 @@ const URL = `https://nces.ed.gov/programs/edge/data/EDGE_GEOCODE_PUBLICSCH_${YEA
 export default async function schools() {
   const buf = await fetchCached(URL, `nces-publicsch-${YEAR}.zip`, { fixture: "nces-publicsch.zip" });
   const zip = zipEntries(buf);
-  // NCES ships xlsx + SAS + shapefile; the shapefile's .dbf is the same table and needs no library
-  const rows = zip.names.some(n => /\.dbf$/i.test(n)) ? parseDbf(zip.read(/\.dbf$/i))
-    : zip.names.some(n => /\.csv$/i.test(n)) ? parseCsv(zip.read(/\.csv$/i))
-    : (() => { throw new Error(`no .dbf or .csv in archive; entries: ${zip.names.join(", ")}`); })();
+  // The 2024-25 archive holds EDGE_GEOCODE_PUBLICSCH_2425.TXT (tab-delimited), an .xlsx, a SAS file
+  // and a nested Shapefile_SCH.zip. Prefer the .TXT; fall back to a .csv or the shapefile's .dbf.
+  const rows = zip.names.some(n => /\.(txt|csv)$/i.test(n)) ? parseCsv(zip.read(/\.(txt|csv)$/i))
+    : zip.names.some(n => /\.dbf$/i.test(n)) ? parseDbf(zip.read(/\.dbf$/i))
+    : zip.names.some(n => /shapefile.*\.zip$/i.test(n)) ? parseDbf(zipEntries(zip.read(/shapefile.*\.zip$/i)).read(/\.dbf$/i))
+    : (() => { throw new Error(`no .txt/.csv/.dbf in archive; entries: ${zip.names.join(", ")}`); })();
   const items = [];
   for (const r of rows) {
     const lat = +r.LAT, lon = +r.LON;
