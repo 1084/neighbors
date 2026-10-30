@@ -31,8 +31,18 @@ export default async function schools() {
   // export columns the 2024-25 file carries): X, OBJECTID, then the documented record.
   const LAYOUT = ["X", "OBJECTID", "SURVYEAR_N", "LEAID_N", "SCHID_N", "NCESSCH", "LEAID", "NAME", "OPSTFIPS", "STREET", "CITY", "STATE", "ZIP", "NMCNTY", "LAT", "LON", "CITY2", "STATE2", "LOCALE_TXT", "LOCALE_TXT2", "CBSA", "NMCBSA", "CBSATYPE", "CSA", "NMCSA", "NECTA", "NMNECTA", "CD", "SLDL", "SLDU", "SCHOOLYEAR"];
   const txt = zip.names.some(n => /\.(txt|csv)$/i.test(n)) ? zip.read(/\.(txt|csv)$/i) : null;
-  const headerless = txt && /^\d+[\t,]\s*\d+[\t,]/.test(txt.subarray(0, 64).toString("utf8")); // first line is data, not names
-  const rows = txt ? (headerless ? fitLayout(parseCsv(txt, { header: LAYOUT }), LAYOUT) : parseCsv(txt))
+  // Decide "header-less" from content, not from how the first bytes happen to be quoted:
+  // parse once normally; if the column NAMES contain a 12-digit NCES id or a decimal coordinate,
+  // the first row was data, so re-parse with the fixed layout.
+  const looksLikeData = (names) => names.some(n => /^\d{12}$/.test(n)) && names.some(n => /^-?\d+\.\d+$/.test(n));
+  let rows = null;
+  if (txt) {
+    const probe = parseCsv(txt);
+    const names = Object.keys(probe[0] || {});
+    if (looksLikeData(names)) { log(`schools: no header row (first line is ${names[7] || names[5] || "data"}); using positional layout`); rows = fitLayout(parseCsv(txt, { header: LAYOUT }), LAYOUT); }
+    else rows = probe;
+  }
+  rows = rows ? rows
     : zip.names.some(n => /\.dbf$/i.test(n)) ? parseDbf(zip.read(/\.dbf$/i))
     : zip.names.some(n => /shapefile.*\.zip$/i.test(n)) ? parseDbf(zipEntries(zip.read(/shapefile.*\.zip$/i)).read(/\.dbf$/i))
     : (() => { throw new Error(`no .txt/.csv/.dbf in archive; entries: ${zip.names.join(", ")}`); })();
