@@ -11,6 +11,16 @@ const URL = `https://nces.ed.gov/programs/edge/data/EDGE_GEOCODE_PUBLICSCH_${YEA
 // NCESSCH is the first 12-digit field; LAT/LON are the first pair of signed decimals with |lat|<=72, lon<0.
 function fitLayout(rows, layout) {
   const r0 = rows[0]; if (!r0) return rows;
+  // If the fixed layout already lines up (12-digit id in NCESSCH, decimal LAT/LON), keep it as is.
+  if (/^\d{12}$/.test(r0.NCESSCH || "") && /^-?\d+\.\d+$/.test(r0.LAT || "") && /^-\d+\.\d+$/.test(r0.LON || "")) {
+    // In the 2024-25 .TXT the slot after STATE is the county FIPS and the real ZIP sits just before NCESSCH.
+    const iId = layout.indexOf("NCESSCH"), zipKey = layout[iId - 1];
+    if (zipKey && /^\d{5}$/.test(r0[zipKey] || "") && /^\d{5}$/.test(r0.ZIP || "") && r0.ZIP.startsWith(r0.OPSTFIPS || "\0")) {
+      log("schools: positional layout; ZIP taken from the column before NCESSCH");
+      return rows.map(r => ({ ...r, ZIP: r[zipKey] }));
+    }
+    return rows;
+  }
   const vals = layout.map(k => r0[k]);
   const iId = vals.findIndex(v => /^\d{12}$/.test(v));
   const iLat = vals.findIndex((v, i) => /^-?\d+\.\d+$/.test(v) && Math.abs(+v) <= 72 && /^-\d+\.\d+$/.test(vals[i + 1] || ""));
