@@ -51,7 +51,7 @@ export function zipEntries(buf) {
 }
 
 /** Parse CSV (RFC 4180 quoting, CRLF or LF) into objects keyed by header; header keys are trimmed and upper-cased. */
-export function parseCsv(text, { upper = true, sep } = {}) {
+export function parseCsv(text, { upper = true, sep, header: fixedHeader } = {}) {
   if (Buffer.isBuffer(text)) text = text.toString("utf8");
   if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
   if (!sep) { const head = text.slice(0, text.indexOf("\n")); const tabs = (head.match(/\t/g) || []).length, commas = (head.match(/,/g) || []).length, pipes = (head.match(/\|/g) || []).length; sep = tabs >= commas && tabs >= pipes ? "\t" : pipes > commas ? "|" : ","; }
@@ -65,7 +65,8 @@ export function parseCsv(text, { upper = true, sep } = {}) {
     else field += c;
   }
   if (field !== "" || row.length) { row.push(field); rows.push(row); }
-  const header = rows.shift().map(h => upper ? h.trim().toUpperCase() : h.trim());
+  // A file with no header row: pass `header` and every row is data.
+  const header = fixedHeader ? fixedHeader.map(h => upper ? h.toUpperCase() : h) : rows.shift().map(h => upper ? h.trim().toUpperCase() : h.trim());
   return rows.map(r => Object.fromEntries(header.map((h, i) => [h, (r[i] ?? "").trim()])));
 }
 
