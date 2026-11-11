@@ -1,0 +1,15 @@
+{
+  "name": "neighbors-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create neighbors",
+    "db:init": "wrangler d1 execute neighbors --remote --file=schema.sql",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  }
+}

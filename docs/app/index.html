@@ -259,7 +259,7 @@ svg{flex:none}
 (() => {
   // ---------- config ----------
   const DATA = window.NEIGHBORS_DATA || "../data/";
-  const CONTRIB = window.NEIGHBORS_CONTRIB || "";            // the contribution queue's endpoint, when it exists
+  const CONTRIB = window.NEIGHBORS_CONTRIB || "https://neighbors-api.johnhubert.llc/v1";   // the contribution queue (worker/)
   const CATS = { "public-safety":"Public safety", "elections":"Elections", "governance":"Meetings", "public-spaces":"Parks and places", "public-services":"Services", "volunteering":"Volunteer", "kids-and-family":"Kids and family", "education":"Schools and libraries", "health":"Health", "work":"Public jobs" };
   const COLOR = { "public-safety":["#D08079","#9A4F49","#F7E3E0"], "elections":["#6E8F7E","#3F5A4D","#DCE6DF"], "governance":["#5E6E9C","#3C4870","#E4E6EF"], "public-spaces":["#7FA38F","#3F5A4D","#DCE6DF"], "public-services":["#7F9AB5","#3E5570","#E3EAF2"], "volunteering":["#8FA86B","#4A5A2E","#E6ECD8"], "kids-and-family":["#D9A066","#6B4E2A","#EDE3D2"], "education":["#C9A96A","#6B4E2A","#EDE3D2"], "health":["#6C9AA6","#2F5560","#DDEAED"], "work":["#B5744F","#5E3A24","#EFE0D6"] };
   const ALLOWED = /\.(gov|mil|edu|us|org)$|\.k12\.[a-z]{2}\.us$|\.lib\.[a-z]{2}\.us$/i;
@@ -335,7 +335,7 @@ svg{flex:none}
     return `<a class="card" href="#item/${encodeURIComponent(it.id)}"><div class="band" style="background:${c[0]}"></div><div class="in">
       <div class="row"><span class="cat" style="color:${c[1]}">${esc(CATS[it.category] || it.category)}</span>${tag ? `<span class="tag" style="color:${c[1]};background:${c[2]}">${esc(tag[0])}</span>` : ""}</div>
       <h3>${esc(it.title)}</h3>${it.summary ? `<p>${esc(it.summary)}</p>` : ""}
-      <div class="row"><span class="meta">${esc([it.sourceName, it.d != null ? `${it.d < 1 ? it.d.toFixed(1) : it.d.toFixed(0)} mi` : it.state ? "statewide" : "nationwide", whenLine(it)].filter(Boolean).join(" · "))}</span>
+      <div class="row"><span class="meta">${esc([it.sourceName, it.d != null ? `${it.d < 1 ? it.d.toFixed(1) : it.d.toFixed(0)} mi` : it.state ? "statewide" : "nationwide", whenLine(it)].filter(Boolean).join(" · "))}<span data-sig="${esc(it.id)}">${sigs[it.id]?.confirms ? ` · ${sigs[it.id].confirms} confirmed` : ""}</span></span>
       <div class="acts"><button class="mini ${done ? "done" : ""}" data-confirm="${esc(it.id)}" aria-label="Confirm this is still accurate"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></button><button class="mini" data-flag="${esc(it.id)}" aria-label="Flag a problem"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4h11l-1 4 1 4H5"/></svg></button></div></div>
     </div></a>`; };
 
@@ -351,13 +351,16 @@ svg{flex:none}
     $("#status").textContent = `${local.length} nearby · ${far.length} statewide or nationwide · ${$("#status").dataset.built || ""}`;
     $("#feed").innerHTML = (shown.length ? shown.map(card).join("") : `<div class="empty">${q ? `Nothing nearby matches “${esc(q)}”.` : `Nothing in this category within ${S.radius} miles. Try a wider distance in Settings.`}</div>`) + (list.length > shown.length ? `<button class="more" id="more">Show ${Math.min(PAGE, list.length - shown.length)} more of ${list.length}</button>` : "");
     const m = $("#more"); if (m) m.onclick = () => { page++; render(); };
+    loadSignals(shown.map(it => it.id));
   }
+  let sigs = {}, sigT;
+  function loadSignals(ids) { if (!CONTRIB) return; const need = ids.filter(id => !(id in sigs)).slice(0, 60); if (!need.length) return; clearTimeout(sigT); sigT = setTimeout(async () => { try { const r = await fetch(CONTRIB + "/signals?ids=" + encodeURIComponent(need.join(","))); if (!r.ok) return; const j = await r.json(); for (const id of need) sigs[id] = j[id] || { confirms: 0, flags: 0 }; $$("[data-sig]").forEach(el => { const s = sigs[el.dataset.sig]; if (s && s.confirms) el.textContent = ` · ${s.confirms} confirmed`; }); } catch {} }, 150); }
   $("#feed").addEventListener("click", e => { const c = e.target.closest("[data-confirm]"), f = e.target.closest("[data-flag]"); if (!c && !f) return; e.preventDefault(); if (c) confirmItem(c.dataset.confirm); else flagItem(f.dataset.flag); });
 
   // ---------- confirm / flag / contribute: structured, queued, never shown to other users ----------
   const toast = m => { const t = $("#toast"); t.textContent = m; t.classList.add("on"); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("on"), 2200); };
   async function send(kind, body) { const rec = { kind, ...body, at: new Date().toISOString(), zip3: S.zip.slice(0, 3) };
-    if (CONTRIB) { try { const r = await fetch(CONTRIB, { method:"POST", headers:{ "content-type":"application/json" }, body: JSON.stringify(rec) }); if (r.ok) return true; } catch {} }
+    if (CONTRIB) { try { const r = await fetch(CONTRIB + "/contribute", { method:"POST", headers:{ "content-type":"application/json" }, body: JSON.stringify(rec) }); if (r.ok) return true; if (r.status === 400 || r.status === 429) { const j = await r.json().catch(() => ({})); toast(j.error || "Not accepted."); return true; } } catch {} }
     S.queue.push(rec); save(); return false; }
   function confirmItem(id) { if (S.confirmed[id]) return toast("Already confirmed, thank you."); S.confirmed[id] = now(); save(); send("confirm", { id }); toast("Thanks. Confirmed."); render(); if (current === id) drawDetail(id); }
   function flagItem(id) { const why = prompt("What's wrong? (wrong place, over, broken link, not an official source)"); if (why == null) return; S.flagged[id] = now(); save(); send("flag", { id, why: why.slice(0, 200) }); toast("Flagged. A person will look."); }
@@ -386,7 +389,7 @@ svg{flex:none}
   $("#push-note").textContent = ("Notification" in window) ? "" : "This browser can't deliver alerts; the iPhone app can.";
 
   // ---------- what's new ----------
-  async function renderNew() { const list = await get("whats-new.json");
+  async function renderNew() { let list = null; if (CONTRIB) { try { const r = await fetch(CONTRIB + "/whats-new"); if (r.ok) list = await r.json(); } catch {} } if (!list) list = await get("whats-new.json");
     const rows = Array.isArray(list) && list.length ? list : [{ when: "Soon", status: "Reviewing", title: "This page will show what neighbors added and what came of their ideas.", note: "Nothing has landed yet near you. The first contribution shows up here, with no name attached." }];
     const pill = s => ({ Live:["var(--accent-ink)","var(--accent-soft)"], Done:["var(--accent-ink)","var(--accent-soft)"], Reviewing:["var(--sand-ink)","var(--sand)"] }[s] || ["var(--ink2)","var(--line2)"]);
     $("#new-list").innerHTML = rows.map(r => { const [fg, bg] = pill(r.status); return `<div class="nw"><div class="row"><span class="when">${esc(r.when)}</span><span class="tag" style="color:${fg};background:${bg}">${esc(r.status)}</span></div><b>${esc(r.title)}</b>${r.note ? `<small>${esc(r.note)}</small>` : ""}</div>`; }).join("")
@@ -411,7 +414,7 @@ svg{flex:none}
       if (step === 2) { form.cat = $("#c-cat").value; form.title = $("#c-title").value.trim(); }
       if (step === 3) { form.zip = $("#c-zip").value.trim(); if (!/^\d{5}$/.test(form.zip)) return toast("A five-digit ZIP, please."); if ($("#c-when")) form.when = $("#c-when").value; }
       if (step < 4) { step++; drawContribute(); return; }
-      const sent = await send(kind, form); toast(sent ? "Sent for review. Thank you." : "Kept on this phone; it will send when the queue is reachable."); kind = "source"; step = 1; form = {}; $$("#c-kinds .opt").forEach((x, i) => x.classList.toggle("on", i === 0)); go("#new");
+      const sent = await send(kind, form); if (sent) toast("Sent for review. Thank you."); else toast("Kept on this phone; it will send when the queue is reachable."); kind = "source"; step = 1; form = {}; $$("#c-kinds .opt").forEach((x, i) => x.classList.toggle("on", i === 0)); go("#new");
     };
   }
 
