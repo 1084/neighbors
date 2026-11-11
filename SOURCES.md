@@ -10,6 +10,7 @@ Policy: official or recognized-nonprofit source · free to use · national cover
 | ridb | ridb.recreation.gov | Day one | RIDB_API_KEY | | Public domain |
 | usda | usdalocalfoodportal.com | Day one | USDA_API_KEY | | Queried per state; geocoded by ZIP |
 | civic | Google Civic Information electionQuery | Day one | GOOGLE_CIVIC_KEY | 2026-10-07 | Cache ≤ 24 h |
+| va-elections | Virginia Department of Elections, Upcoming Elections page (HTML, scraped) | Day one (elections) | none | 2026-11-11 | No feed exists; parsed nightly. Election days, registration and mail-ballot deadlines, early-voting windows, and a standing registration link (same-day registration since 2022). State tile; local specials carry their locality in `place` |
 | usajobs | data.usajobs.gov Search API | Phase 2 (work) | USAJOBS_API_KEY + USAJOBS_USER_AGENT (the email the key was issued to) | 2026-10-27 | Public employers only; one nightly walk, 500/page; positions placed by their own lat/long; postings with >8 duty stations or no coordinates dropped |
 | schools | NCES EDGE geocoded public school file | Phase 2 (education) | none | 2026-10-30 | Annual zip (~29 MB); every public school by address geocode; links to the CCD school page |
 | libraries | IMLS Public Libraries Survey outlet file | Phase 2 (education) | none | 2026-10-30 | Annual zip; central/branch/bookmobile outlets with coordinates and hours; IMLS_ZIP_URL points at the current FY |

@@ -18,6 +18,7 @@ import nps from "./feeds/nps.mjs";
 import ridb from "./feeds/ridb.mjs";
 import usda from "./feeds/usda.mjs";
 import civic from "./feeds/civic.mjs";
+import vaElections from "./feeds/va-elections.mjs";
 import usajobs from "./feeds/usajobs.mjs";
 import schools from "./feeds/schools.mjs";
 import libraries from "./feeds/libraries.mjs";
@@ -29,7 +30,7 @@ if (!existsSync(resolve(DATA, "zcta.json"))) {
   process.exit(1);
 }
 
-const FEEDS = { nws, recalls, nps, ridb, usda, civic, usajobs, schools, libraries, healthcenters, hospitals };
+const FEEDS = { nws, recalls, nps, ridb, usda, civic, "va-elections": vaElections, usajobs, schools, libraries, healthcenters, hospitals };
 const only = process.env.FEEDS ? process.env.FEEDS.split(",") : Object.keys(FEEDS);
 
 const results = [];
