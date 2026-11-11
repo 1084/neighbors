@@ -7,7 +7,10 @@ export default async function civic() {
   if (!key && !process.env.FIXTURES) { log("civic: GOOGLE_CIVIC_KEY not set, skipping"); return []; }
   const data = await fetchJson(`https://www.googleapis.com/civicinfo/v2/elections?key=${key}`, { fixture: "civic-elections.json" });
   const items = [];
+  const horizon = new Date(Date.now() + 400 * 86400000).toISOString().slice(0, 10);
   for (const e of data?.elections || []) {
+    // Google's permanent test fixtures (ids 1001 and 2000, "Test Election", dated years out) are never real
+    if (/test election/i.test(e.name || "") || String(e.id) === "1001" || String(e.id) === "2000" || (e.electionDay && e.electionDay > horizon)) continue;
     const m = /state:([a-z]{2})/.exec(e.ocdDivisionId || "");
     const state = m ? m[1].toUpperCase() : null;
     if (!state && e.ocdDivisionId !== "ocd-division/country:us") continue;
@@ -16,7 +19,7 @@ export default async function civic() {
       title: e.name, summary: state ? `Election day in ${state}. Check registration and early-voting dates with your state election office.` : "Federal election day.",
       starts: e.electionDay ? `${e.electionDay}T12:00:00Z` : null, ends: null,
       lat: null, lon: null, place: state || "United States", state,
-      sourceUrl: "https://www.vote.gov/", sourceName: "Voting Information Project via Civic Information API",
+      sourceUrl: state ? `https://www.vote.gov/register/${state.toLowerCase()}/` : "https://www.vote.gov/", sourceName: "Voting Information Project",
     }));
   }
   return items;
