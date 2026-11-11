@@ -30,12 +30,16 @@ export default async function nps() {
       sourceUrl: p.url, sourceName: "National Park Service",
     }));
   }
+  // An alert is a standing notice, not an event: it gets no starts (so it never sorts as "past"), and one
+  // older than 90 days is dropped (the API keeps 2015 break-in warnings forever).
   const alerts = await paged("alerts", "nps-alerts");
+  const cutoff = Date.now() - 90 * 86400000;
   for (const a of alerts) {
     const p = byCode[a.parkCode]; if (!p?.latitude) continue;
+    if (a.lastIndexedDate && new Date(a.lastIndexedDate).getTime() < cutoff) continue;
     items.push(item({
       id: `nps:alert:${a.id}`, feedId: "nps", category: "public-safety",
-      title: `${p.fullName}: ${a.title}`, summary: a.description, starts: a.lastIndexedDate, ends: null,
+      title: `${p.fullName}: ${a.title}`, summary: a.description, starts: null, ends: null,
       lat: p.latitude, lon: p.longitude, place: p.fullName, state: (p.states || "").split(",")[0],
       sourceUrl: a.url || p.url, sourceName: "National Park Service", updatedAt: a.lastIndexedDate,
     }));
@@ -43,7 +47,7 @@ export default async function nps() {
   const events = await paged("events?dateStart=" + new Date().toISOString().slice(0, 10), "nps-events");
   for (const e of events) {
     const p = byCode[e.parkcode || e.parkCode]; const lat = +e.latitude || p?.latitude, lon = +e.longitude || p?.longitude;
-    if (!lat || !lon) continue;
+    if (!lat || !lon || !(e.infourl || p?.url)) continue;
     const day = e.dates?.[0] || e.datestart;
     items.push(item({
       id: `nps:event:${e.id}`, feedId: "nps", category: "public-spaces",

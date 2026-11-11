@@ -36,6 +36,7 @@ export default async function nws() {
     if (lat == null) for (const ugc of p.geocode?.UGC || []) { const c = await zoneCentroid(ugc, cache); if (c) { [lat, lon] = c; break; } }
     if (lat == null) continue;   // an alert we can't place is not shown (it would land in "national")
     const state = (p.geocode?.UGC?.[0] || "").slice(0, 2) || null;
+    if ((p.ends || p.expires) && new Date(p.ends || p.expires).getTime() < Date.now()) continue; // already over
     items.push(item({
       id: `nws:${p.id}`, feedId: "nws", category: "public-safety",
       title: p.event, summary: p.headline || p.description?.split("\n\n")[0],

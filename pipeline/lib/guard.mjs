@@ -12,7 +12,7 @@ export async function runFeed(feedId, fn) {
   const old = committed?.items || [];
   try {
     const items = await fn();
-    if (old.length >= MIN_OLD && items.length < old.length * RATIO) {
+    if ((old.length >= MIN_OLD && items.length < old.length * RATIO) || (old.length > 0 && items.length === 0)) {
       log(`${feedId}: ${items.length} items vs ${old.length} committed — keeping committed (stale)`);
       return { feedId, items: old, stale: true, count: old.length, fetched: items.length };
     }

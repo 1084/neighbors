@@ -21,14 +21,18 @@ export default async function healthcenters() {
     const id = col(r, "BHCMIS Organization Identification Number", "Health Center Site Identification Number", "Site ID") || `${i++}`;
     const hours = col(r, "Operating Hours per Week");
     items.push(item({
-      id: `hrsa:${id}:${lat.toFixed(4)},${lon.toFixed(4)}`, feedId: "healthcenters", category: "health",
+      id: `hrsa:${id}:${lat.toFixed(4)},${lon.toFixed(4)}:${slug(name)}`, feedId: "healthcenters", category: "health",
       title: titleCase(name),
       summary: [col(r, "Site Type Description", "Site Type"), col(r, "Site Address") && titleCase(col(r, "Site Address")), [titleCase(col(r, "Site City")), st, col(r, "Site Postal Code").slice(0, 5)].filter(Boolean).join(" "), phone(col(r, "Site Telephone Number")), +hours > 0 && `${hours} hours a week`, col(r, "Health Center Name") && `part of ${titleCase(col(r, "Health Center Name"))}`].filter(Boolean).join(" · "),
       starts: null, ends: null, lat, lon,
       place: [titleCase(col(r, "Site City")), st].filter(Boolean).join(", "), state: st,
-      sourceUrl: col(r, "Site Web Address") ? (/^https?:/.test(col(r, "Site Web Address")) ? col(r, "Site Web Address") : `https://${col(r, "Site Web Address")}`) : "https://findahealthcenter.hrsa.gov/", sourceName: "HRSA Find a Health Center",
+      sourceUrl: webUrl(col(r, "Site Web Address")), sourceName: "HRSA Find a Health Center",
     }));
   }
   log(`healthcenters: ${rows.length} rows → ${items.length} placed`);
   return items;
 }
+
+const slug = s => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+// The file's web addresses are hand-typed: "http:\\www.x.org", "http:x.org", "www.x.org". Normalise or fall back.
+const webUrl = raw => { const w = String(raw || "").trim().replace(/\\/g, "/").replace(/^https?:\/*/i, "").replace(/^\/+/, ""); return /^[a-z0-9.-]+\.[a-z]{2,}(\/|$)/i.test(w) ? `https://${w}` : "https://findahealthcenter.hrsa.gov/"; };

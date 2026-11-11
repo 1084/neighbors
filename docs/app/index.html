@@ -276,6 +276,7 @@ svg{flex:none}
 
   let cat = "all", q = "", items = [], wide = [], byId = new Map(), page = 1, zcta = null, index = null;
   const PAGE = 20;
+  const DIRECTORY = new Set(["libraries", "healthcenters", "hospitals", "ridb", "schools", "usajobs"]); // places and postings: under their chip or a search, never in "All"
 
   // ---------- geo (same as the viewer) ----------
   const TILE = 2;
@@ -314,7 +315,7 @@ svg{flex:none}
     wide = [...(stateTile || []), ...(national || [])].map(it => ({ ...it, d: null }));
     byId = new Map([...items, ...wide].map(it => [it.id, it]));
     const built = index?.builtAt ? new Date(index.builtAt).toLocaleDateString(undefined, { month:"short", day:"numeric" }) : "?";
-    $("#status").dataset.built = `Data built ${built}${index?.stale?.length ? " · waiting on: " + index.stale.join(", ") : ""}`;
+    $("#status").dataset.built = `data from ${built}`;
     page = 1; render(); renderSaved();
   }
 
@@ -345,11 +346,12 @@ svg{flex:none}
     const soon = items.filter(it => it.starts && new Date(it.starts) > now() - 3600e3 && new Date(it.starts) < now() + 14 * DAY && it.category !== "work").sort((a, b) => a.starts.localeCompare(b.starts)).slice(0, 8);
     $("#soon-wrap").style.display = soon.length && cat === "all" && !q ? "" : "none";
     $("#soon").innerHTML = soon.map(it => { const c = COLOR[it.category] || COLOR["public-services"]; return `<a href="#item/${encodeURIComponent(it.id)}" style="background:${c[2]};color:${c[1]}"><span class="d">${esc(whenLine(it))}</span><span class="t" style="color:var(--ink)">${esc(it.title)}</span><span class="s">${esc(it.sourceName)} · ${it.d < 1 ? it.d.toFixed(1) : it.d.toFixed(0)} mi</span></a>`; }).join("");
-    const local = items.filter(it => (cat === "all" || it.category === cat) && hit(it)).sort(order);
+    const local = items.filter(it => (cat === "all" ? !DIRECTORY.has(it.feedId) || q : it.category === cat) && hit(it)).sort(order);
+    const placesHidden = cat === "all" && !q ? items.filter(it => DIRECTORY.has(it.feedId)).length : 0;
     const far = wide.filter(it => (cat === "all" || it.category === cat) && hit(it)).sort((a, b) => (b.starts || "").localeCompare(a.starts || ""));
     const list = [...local, ...far]; const shown = list.slice(0, page * PAGE);
-    $("#status").textContent = `${local.length} nearby · ${far.length} statewide or nationwide · ${$("#status").dataset.built || ""}`;
-    $("#feed").innerHTML = (shown.length ? shown.map(card).join("") : `<div class="empty">${q ? `Nothing nearby matches “${esc(q)}”.` : `Nothing in this category within ${S.radius} miles. Try a wider distance in Settings.`}</div>`) + (list.length > shown.length ? `<button class="more" id="more">Show ${Math.min(PAGE, list.length - shown.length)} more of ${list.length}</button>` : "");
+    $("#status").textContent = `${local.length} nearby · ${far.length} statewide or nationwide${placesHidden ? ` · ${placesHidden} places and postings under their chips` : ""} · ${$("#status").dataset.built || ""}`;
+    $("#feed").innerHTML = (shown.length ? shown.map(card).join("") : `<div class="empty">${q ? `Nothing nearby matches “${esc(q)}”.` : cat === "all" ? `Nothing dated or urgent within ${S.radius} miles right now. The chips above have ${placesHidden} places and postings nearby.` : `Nothing in this category within ${S.radius} miles. Try a wider distance in Settings.`}</div>`) + (list.length > shown.length ? `<button class="more" id="more">Show ${Math.min(PAGE, list.length - shown.length)} more of ${list.length}</button>` : "");
     const m = $("#more"); if (m) m.onclick = () => { page++; render(); };
     loadSignals(shown.map(it => it.id));
   }

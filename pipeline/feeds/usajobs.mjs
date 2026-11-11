@@ -43,7 +43,8 @@ export default async function usajobs() {
       if (!locs.length || locs.length > MAX_LOCATIONS) { dropped++; continue; }
       const pay = payLine(d.PositionRemuneration);
       const sched = (d.PositionSchedule || []).map(s => s.Name).filter(Boolean).join(", ");
-      const summary = [d.UserArea?.Details?.JobSummary, [sched, pay].filter(Boolean).join(" · ")].filter(Boolean).join(" ");
+      if (d.ApplicationCloseDate && new Date(d.ApplicationCloseDate).getTime() < Date.now()) continue; // closed
+      const summary = [firstSentences(d.UserArea?.Details?.JobSummary), [sched, pay].filter(Boolean).join(" · ")].filter(Boolean).join(" ");
       locs.forEach((l, i) => items.push(item({
         id: `usajobs:${row.MatchedObjectId || d.PositionID}:${i}`, feedId: "usajobs", category: "work",
         title: `${d.PositionTitle} — ${d.OrganizationName || d.DepartmentName || "U.S. Government"}`,
@@ -58,3 +59,6 @@ export default async function usajobs() {
   log(`usajobs: ${seen} postings → ${items.length} placed items (${dropped} without a local duty station)`);
   return items;
 }
+
+// Two sentences of the posting's own summary; the rest is boilerplate about the agency.
+const firstSentences = t => { const s = String(t || "").replace(/\s+/g, " ").trim(); const m = s.match(/^(.+?[.!?])(\s+[^.!?]+?[.!?])?/); return m ? (m[1] + (m[2] || "")).slice(0, 300) : s.slice(0, 300); };
