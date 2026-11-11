@@ -10,7 +10,7 @@ test("usajobs: places each duty station, drops remote/national postings", async 
   assert.equal(r.category, "work"); assert.equal(r.state, "VA"); assert.equal(r.lat, 37.5407);
   assert.match(r.title, /^Registered Nurse .* — Veterans Health Administration$/);
   assert.match(r.summary, /\$72,553–\$136,245 per year/);
-  assert.equal(r.sourceName, "USAJOBS"); assert.ok(r.ends.startsWith("2026-11-14"));
+  assert.equal(r.sourceName, "USAJOBS"); assert.ok(r.ends.startsWith("2099-11-14"));
   assert.ok(items.some(i => i.state === "WV"));
   assert.ok(!items.some(i => /Contact Representative/.test(i.title)));
   assert.equal(new Set(items.map(i => i.id)).size, 3);
