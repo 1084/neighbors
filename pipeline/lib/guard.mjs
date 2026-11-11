@@ -12,7 +12,9 @@ export async function runFeed(feedId, fn) {
   const old = committed?.items || [];
   try {
     const items = await fn();
-    if ((old.length >= MIN_OLD && items.length < old.length * RATIO) || (old.length > 0 && items.length === 0)) {
+    // A feed may return an empty array marked `items.empty = true` to say "zero is the truth, not an outage"
+    // (civic off-season, once Google's test fixtures are filtered out). Otherwise zero after items is stale.
+    if (!items.empty && ((old.length >= MIN_OLD && items.length < old.length * RATIO) || (old.length > 0 && items.length === 0))) {
       log(`${feedId}: ${items.length} items vs ${old.length} committed — keeping committed (stale)`);
       return { feedId, items: old, stale: true, count: old.length, fetched: items.length };
     }

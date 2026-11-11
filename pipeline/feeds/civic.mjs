@@ -22,5 +22,6 @@ export default async function civic() {
       sourceUrl: state ? `https://www.vote.gov/register/${state.toLowerCase()}/` : "https://www.vote.gov/", sourceName: "Voting Information Project",
     }));
   }
+  if (!items.length) { log("civic: no real elections listed (test fixtures filtered); empty is correct"); items.empty = true; }
   return items;
 }
