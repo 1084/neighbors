@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Neighbors">
+<meta name="theme-color" content="#F6F4EE">
+<title>Neighbors — what's happening near you</title>
+<meta name="description" content="What's happening near your ZIP, from official sources only. No account, no tracking.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg:#F6F4EE;--surface:#fff;--ink:#2B2A28;--ink2:#4F4B46;--ink3:#6B6762;--ink4:#8A857E;--line:#E6E1D9;--line2:#F0ECE4;--accent:#6E8F7E;--accent-ink:#3F5A4D;--accent-soft:#DCE6DF;--coral:#D08079;--coral-ink:#9A4F49;--coral-soft:#F7E3E0;--sand:#EDE3D2;--sand-ink:#6B4E2A}
+@media (prefers-color-scheme:dark){:root{--bg:#171917;--surface:#20231F;--ink:#ECE9E2;--ink2:#CFCAC1;--ink3:#A7A199;--ink4:#8A857E;--line:#33372F;--line2:#2B2E29;--accent:#7FA38F;--accent-ink:#CFE0D4;--accent-soft:#2A3A31;--coral:#D08079;--coral-ink:#F0C4BE;--coral-soft:#3D2A28;--sand:#3A3224;--sand-ink:#E3CFA9}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:15px/1.45 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+#app{min-height:100%;display:flex;flex-direction:column;max-width:560px;margin:0 auto;position:relative}
+.screen{display:none;flex-direction:column;min-height:100vh;padding-top:env(safe-area-inset-top)}
+.screen.on{display:flex}
+.pad{padding:0 20px}
+.top{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 10px}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+.title{font-size:22px;font-weight:700;display:flex;align-items:center;gap:6px}
+.icon-btn{width:44px;height:44px;border-radius:22px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;padding:0}
+.icon-btn.ghost{background:rgba(255,255,255,.22);border:0}
+svg{flex:none}
+.section-h{display:flex;align-items:baseline;justify-content:space-between;padding:0 20px;margin:6px 0 10px}
+.section-h b{font-size:15px;font-weight:600}
+.section-h a{font-size:13px;font-weight:500;color:var(--accent)}
+.soon{display:flex;gap:10px;padding:0 20px 4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.soon::-webkit-scrollbar{display:none}
+.soon a{flex:0 0 236px;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.soon .d{font-size:12px;font-weight:600}
+.soon .t{font-size:15px;font-weight:700;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.soon .s{font-size:12px}
+.chips{display:flex;gap:8px;padding:14px 20px 10px;overflow-x:auto;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{height:34px;padding:0 14px;border-radius:17px;border:1px solid var(--line);background:var(--surface);font-size:13px;font-weight:500;white-space:nowrap}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.search{margin:0 20px 10px;display:none}
+.search.on{display:block}
+.search input{width:100%;height:46px;border:1px solid var(--line);border-radius:14px;padding:0 14px;background:var(--surface);outline:0}
+.search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.feed{display:flex;flex-direction:column;gap:12px;padding:0 20px 120px}
+.card{background:var(--surface);border-radius:18px;border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column;text-align:left}
+.card .band{height:8px}
+.card .in{padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.card .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.card .cat{font-size:12px;font-weight:600}
+.tag{font-size:11px;font-weight:600;border-radius:10px;padding:3px 8px;white-space:nowrap}
+.card h3{margin:0;font-size:17px;font-weight:700;line-height:1.25}
+.card p{margin:0;font-size:13px;line-height:1.4;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.card .meta{font-size:12px;color:var(--ink3);flex:1;min-width:0}
+.card .acts{flex:none}
+.acts{display:flex;gap:6px}
+.mini{width:36px;height:36px;border-radius:18px;border:1px solid var(--line);background:var(--bg);display:flex;align-items:center;justify-content:center;padding:0}
+.mini.done{background:var(--accent-soft);border-color:var(--accent)}
+.status{font-size:12px;color:var(--ink4);padding:0 20px 8px}
+.empty{color:var(--ink3);padding:28px 20px;text-align:center;border:1px dashed var(--line);border-radius:16px;margin:0 20px}
+.more{height:46px;border-radius:14px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:14px;color:var(--accent)}
+.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-around;padding:10px 8px calc(10px + env(safe-area-inset-bottom));z-index:5}
+.tabs a{width:60px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--ink4)}
+.tabs a.on{color:var(--ink);font-weight:600}
+.tabs a.plus{width:64px;height:64px;margin-top:-32px;border-radius:32px;background:var(--accent);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(62,90,77,.35)}
+.tabs svg{stroke:currentColor}
+.hero{padding:18px 20px 22px;display:flex;flex-direction:column;gap:14px;color:#fff}
+.hero h1{margin:0;font-size:24px;font-weight:700;line-height:1.2}
+.hero .eyebrow{color:#fff;opacity:.9}
+.body{flex:1;padding:18px 20px 120px;display:flex;flex-direction:column;gap:14px}
+.src{background:var(--surface);border:1.5px solid var(--accent);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px}
+.src .ic{width:40px;height:40px;border-radius:12px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center}
+.src b{font-size:14px;display:block}
+.src small{font-size:12px;color:var(--ink3)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.fact .k{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink4)}
+.fact .v{font-size:14px;font-weight:600}
+.actbar{position:fixed;left:0;right:0;bottom:0;padding:12px 20px calc(16px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px;z-index:5}
+.actbar small{font-size:12px;color:var(--ink3);text-align:center}
+.actbar .row{display:flex;gap:10px}
+.btn{height:48px;border-radius:14px;border:1px solid var(--line);background:var(--surface);font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;flex:1;padding:0 14px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.btn.soft{background:var(--accent-soft);border-color:var(--accent-soft);color:var(--accent-ink);font-weight:700}
+.btn.dark{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.btn:disabled{opacity:.5;cursor:default}
+.opt{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;width:100%}
+.opt.on{border:1.5px solid var(--accent)}
+.opt .ic{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex:none}
+.opt b{font-size:15px;display:block}
+.opt small{font-size:12.5px;color:var(--ink3);line-height:1.35}
+.panel{margin:0 20px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.panel label{font-size:18px;font-weight:700;line-height:1.25}
+.panel .lab{font-size:13px;font-weight:600;color:var(--ink2)}
+.panel input,.panel textarea,.panel select{width:100%;border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--bg);outline:0;font-size:15px}
+.panel input:focus,.panel textarea:focus,.panel select:focus{border-color:var(--accent)}
+.panel textarea{min-height:90px;resize:vertical}
+.steps{display:flex;gap:6px}
+.steps i{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.steps i.on{background:var(--accent)}
+.note{display:flex;align-items:flex-start;gap:8px;background:var(--accent-soft);color:var(--accent-ink);border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.35}
+.note.warn{background:var(--coral-soft);color:var(--coral-ink)}
+.hint{font-size:12px;color:var(--ink4);line-height:1.4}
+.list{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:4px 16px;display:flex;flex-direction:column}
+.list .r{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line2);gap:10px}
+.list .r:last-child{border-bottom:0}
+.list .l{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600}
+.dot{width:10px;height:10px;border-radius:5px;flex:none}
+.sw{width:50px;height:30px;border-radius:15px;border:0;background:#D9D4CB;position:relative;flex:none;padding:0}
+.sw.on{background:var(--accent)}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:12px;background:#fff;transition:left .15s}
+.sw.on::after{left:23px}
+.srow{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;text-align:left;width:100%}
+.srow .bar{width:6px;height:44px;border-radius:3px;flex:none}
+.srow b{font-size:14px;line-height:1.25;display:block}
+.srow small{font-size:12px;color:var(--ink3)}
+.nw{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.nw .row{display:flex;align-items:center;justify-content:space-between}
+.nw .when{font-size:12px;color:var(--ink4)}
+.nw b{font-size:15px;font-weight:600;line-height:1.35}
+.nw small{font-size:12.5px;color:var(--ink3)}
+.welcome{padding:40px 24px 40px;gap:28px;min-height:100vh}
+.welcome .mark{width:52px;height:52px;border-radius:16px;background:var(--accent);display:flex;align-items:center;justify-content:center}
+.welcome h1{margin:8px 0 0;font-size:30px;font-weight:700;line-height:1.15}
+.welcome p{margin:0;font-size:15px;line-height:1.5;color:var(--ink2)}
+.zipbox{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.zipbox input{height:56px;border:1.5px solid var(--accent);border-radius:14px;padding:0 16px;font-size:24px;font-weight:600;letter-spacing:.08em;background:var(--bg);outline:0;width:100%}
+.seg{display:flex;gap:8px}
+.seg button{flex:1;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-size:14px;font-weight:500}
+.seg button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.priv{display:flex;gap:12px;align-items:flex-start;padding:0 4px;font-size:13px;line-height:1.5;color:var(--ink2)}
+#toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:14px;font-weight:600;font-size:14px;max-width:86vw;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
+#toast.on{opacity:1}
+.footnote{font-size:12px;color:var(--ink4);line-height:1.5;padding:12px 20px 0}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- Welcome / settings -->
+<section class="screen welcome" id="s-welcome">
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div class="mark"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></div>
+    <h1 id="w-title">What's happening near you, from official sources only.</h1>
+    <p>Weather alerts, elections, parks, libraries, schools, clinics, recalls, public jobs and volunteer days, each with a link to the government, school or nonprofit page it came from.</p>
+  </div>
+  <div class="zipbox">
+    <label for="zip" class="lab" style="font-size:13px;font-weight:600;color:var(--ink2)">Your ZIP code</label>
+    <input id="zip" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" placeholder="12345" autocomplete="postal-code">
+    <span class="lab" style="font-size:13px;font-weight:600;color:var(--ink2)">How far is "near"?</span>
+    <div class="seg" id="radius"><button type="button" data-r="25" class="on">25 mi</button><button type="button" data-r="50">50 mi</button><button type="button" data-r="100">100 mi</button></div>
+  </div>
+  <div class="priv"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span>Your ZIP stays on this phone. There is no account, no location tracking and no analytics. The app downloads the map squares around you and does the rest itself.</span></div>
+  <div style="flex:1"></div>
+  <button class="btn primary" id="go" style="height:56px;border-radius:16px;font-size:16px" disabled>Show me what's near</button>
+  <p class="hint" style="text-align:center" id="w-foot">You can change the ZIP or distance any time from Settings.</p>
+</section>
+
+<!-- Nearby -->
+<section class="screen" id="s-home">
+  <div class="top">
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <span class="eyebrow">Near you</span>
+      <a href="#settings" class="title"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span id="where">—</span><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></a>
+    </div>
+    <button class="icon-btn" id="q-toggle" aria-label="Search"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+  </div>
+  <div class="search" id="search"><input id="q" type="search" placeholder="Search nearby: title, agency, place" aria-label="Search nearby items" autocomplete="off"></div>
+  <div id="soon-wrap">
+    <div class="section-h"><b>Happening soon</b><a href="#saved">Alerts</a></div>
+    <div class="soon" id="soon"></div>
+  </div>
+  <div class="chips" id="chips"></div>
+  <p class="status" id="status">Loading…</p>
+  <div class="feed" id="feed"></div>
+</section>
+
+<!-- Detail -->
+<section class="screen" id="s-detail">
+  <div class="hero" id="d-hero">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <button class="icon-btn ghost" id="d-back" aria-label="Back"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div style="display:flex;gap:8px">
+        <button class="icon-btn ghost" id="d-save" aria-label="Save"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button>
+        <button class="icon-btn ghost" id="d-share" aria-label="Share the official link"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v8h14v-8"/></svg></button>
+      </div>
+    </div>
+    <span class="eyebrow" id="d-eyebrow"></span>
+    <h1 id="d-title"></h1>
+  </div>
+  <div class="body">
+    <a class="src" id="d-src" target="_blank" rel="noopener">
+      <div class="ic"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></div>
+      <div style="flex:1"><b>Read it at the source</b><small id="d-srcname"></small></div>
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+    </a>
+    <p id="d-summary" style="margin:0;font-size:15px;line-height:1.5"></p>
+    <div class="grid2" id="d-facts"></div>
+    <div class="hint" id="d-updated"></div>
+  </div>
+  <div class="actbar">
+    <small>Still accurate? Two taps help your neighbors; nothing you type is shown to anyone.</small>
+    <div class="row">
+      <button class="btn soft" id="d-confirm"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg><span>Confirm</span></button>
+      <button class="btn" id="d-flag"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4h11l-1 4 1 4H5"/></svg><span>Flag a problem</span></button>
+    </div>
+  </div>
+</section>
+
+<!-- Contribute -->
+<section class="screen" id="s-contribute">
+  <div class="top" style="justify-content:flex-start;gap:12px">
+    <button class="icon-btn" id="c-close" aria-label="Close"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <div style="display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Contribute</span><span style="font-size:20px;font-weight:700">Help your neighbors stay informed</span></div>
+  </div>
+  <div class="pad" style="display:flex;flex-direction:column;gap:10px;padding-top:6px" id="c-kinds">
+    <button class="opt on" data-kind="source"><div class="ic" style="background:var(--accent-soft)"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></div><div><b>Add a source</b><small>A calendar or feed from a library, school, council or agency</small></div></button>
+    <button class="opt" data-kind="item"><div class="ic" style="background:var(--sand)"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--sand-ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div><div><b>Add an item</b><small>One event or notice, with its official link</small></div></button>
+    <button class="opt" data-kind="idea"><div class="ic" style="background:#E4E6EF"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4A5280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.6 1 1.3 1 2.5h6c0-1.2.3-1.9 1-2.5A6 6 0 0 0 12 3z"/></svg></div><div><b>Suggest an idea</b><small>Goes to us privately; what comes of it is posted in What's new</small></div></button>
+  </div>
+  <div class="panel" style="margin-top:22px;margin-bottom:120px" id="c-panel"></div>
+</section>
+
+<!-- Saved & alerts -->
+<section class="screen" id="s-saved">
+  <div class="top"><div style="display:flex;flex-direction:column;gap:2px"><span class="eyebrow" id="sv-where"></span><span style="font-size:22px;font-weight:700">Saved and alerts</span></div></div>
+  <div class="pad" style="display:flex;flex-direction:column;gap:10px">
+    <span class="lab" style="font-size:13px;font-weight:600;color:var(--ink2)">Tell me when something new lands in</span>
+    <div class="list" id="alerts"></div>
+    <p class="hint">Alerts arrive after your phone's own emergency alert, with the details and the official link. The server keeps your push token and nothing else. <span id="push-note"></span></p>
+  </div>
+  <div class="pad" style="display:flex;flex-direction:column;gap:10px;padding-top:22px;padding-bottom:120px">
+    <span class="lab" style="font-size:13px;font-weight:600;color:var(--ink2)">Saved</span>
+    <div id="saved-list" style="display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+</section>
+
+<!-- What's new -->
+<section class="screen" id="s-new">
+  <div class="top"><div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:22px;font-weight:700">What's new</span><span class="hint" style="font-size:13px">What neighbors added, and what came of their ideas. No names, by design.</span></div></div>
+  <div class="pad" id="new-list" style="display:flex;flex-direction:column;gap:10px;padding-bottom:120px"></div>
+</section>
+
+<nav class="tabs" id="tabs">
+  <a href="#home" data-tab="home" aria-label="Nearby"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Nearby</span></a>
+  <a href="#saved" data-tab="saved" aria-label="Saved"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg><span>Saved</span></a>
+  <a href="#contribute" class="plus" aria-label="Contribute"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></a>
+  <a href="#new" data-tab="new" aria-label="What's new"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H8l-4 4z"/></svg><span>What's new</span></a>
+  <a href="#settings" data-tab="settings" aria-label="Settings"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg><span>Settings</span></a>
+</nav>
+<div id="toast" role="status"></div>
+</div>
+
+<script>
+(() => {
+  // ---------- config ----------
+  const DATA = window.NEIGHBORS_DATA || "../data/";
+  const CONTRIB = window.NEIGHBORS_CONTRIB || "";            // the contribution queue's endpoint, when it exists
+  const CATS = { "public-safety":"Public safety", "elections":"Elections", "governance":"Meetings", "public-spaces":"Parks and places", "public-services":"Services", "volunteering":"Volunteer", "kids-and-family":"Kids and family", "education":"Schools and libraries", "health":"Health", "work":"Public jobs" };
+  const COLOR = { "public-safety":["#D08079","#9A4F49","#F7E3E0"], "elections":["#6E8F7E","#3F5A4D","#DCE6DF"], "governance":["#5E6E9C","#3C4870","#E4E6EF"], "public-spaces":["#7FA38F","#3F5A4D","#DCE6DF"], "public-services":["#7F9AB5","#3E5570","#E3EAF2"], "volunteering":["#8FA86B","#4A5A2E","#E6ECD8"], "kids-and-family":["#D9A066","#6B4E2A","#EDE3D2"], "education":["#C9A96A","#6B4E2A","#EDE3D2"], "health":["#6C9AA6","#2F5560","#DDEAED"], "work":["#B5744F","#5E3A24","#EFE0D6"] };
+  const ALLOWED = /\.(gov|mil|edu|us|org)$|\.k12\.[a-z]{2}\.us$|\.lib\.[a-z]{2}\.us$/i;
+  const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+
+  // ---------- state (device only) ----------
+  const K = "neighbors.v1";
+  let S = { zip:"", radius:25, saved:{}, confirmed:{}, flagged:{}, alerts:{ "public-safety":true, "elections":true, "kids-and-family":false, "health":true }, queue:[] };
+  try { Object.assign(S, JSON.parse(localStorage.getItem(K) || "{}")); } catch {}
+  const save = () => { try { localStorage.setItem(K, JSON.stringify(S)); } catch {} };
+  // the old viewer's ZIP, if this phone used it
+  if (!S.zip) { try { const v = JSON.parse(localStorage.getItem("civicboard") || "null"); if (v?.zip) { S.zip = v.zip; S.radius = v.radius || 25; } } catch {} }
+
+  let cat = "all", q = "", items = [], wide = [], byId = new Map(), page = 1, zcta = null, index = null;
+  const PAGE = 20;
+
+  // ---------- geo (same as the viewer) ----------
+  const TILE = 2;
+  const tilesFor = (lat, lon, r) => { const dLat = r / 69, dLon = r / (69 * Math.max(Math.cos(lat * Math.PI / 180), .2)); const s = new Set();
+    for (let la = Math.floor((lat - dLat) / TILE) * TILE; la <= Math.floor((lat + dLat) / TILE) * TILE; la += TILE) for (let lo = Math.floor((lon - dLon) / TILE) * TILE; lo <= Math.floor((lon + dLon) / TILE) * TILE; lo += TILE) s.add(`${la}_${lo}`); return [...s]; };
+  const miles = (a, b, c, d) => { const t = x => x * Math.PI / 180, dl = t(c - a), dn = t(d - b); const h = Math.sin(dl / 2) ** 2 + Math.cos(t(a)) * Math.cos(t(c)) * Math.sin(dn / 2) ** 2; return 2 * 3958.8 * Math.asin(Math.sqrt(h)); };
+  const zipPoint = z => { if (zcta[z]) return zcta[z]; const p = z.slice(0, 3); const k = Object.keys(zcta).filter(x => x.startsWith(p)).sort((a, b) => Math.abs(a - z) - Math.abs(b - z))[0]; return k ? zcta[k] : null; };
+  const get = async p => { try { const r = await fetch(DATA + p, { cache: "no-cache" }); return r.ok ? r.json() : null; } catch { return null; } };
+  let zipState = null;
+  async function stateFor(zip) { try { zipState ||= await (await fetch("https://johnhubert.llc/floor/data/zip.json")).json(); const e = zipState[zip]; const st = Array.isArray(e) ? String(e[0] || "").split("-")[0] : null; if (st) return st.toUpperCase(); } catch {} return "XX"; }
+
+  // ---------- dates ----------
+  const DAY = 864e5, now = () => Date.now();
+  const fmtDay = d => new Date(d).toLocaleDateString(undefined, { weekday:"short", month:"short", day:"numeric" });
+  const fmtTime = d => new Date(d).toLocaleTimeString(undefined, { hour:"numeric", minute:"2-digit" });
+  const hasTime = s => s && !/T(00|12):00:00/.test(s);
+  const whenLine = it => { if (!it.starts) return ""; let s = fmtDay(it.starts) + (hasTime(it.starts) ? " · " + fmtTime(it.starts) : ""); if (it.ends && it.ends !== it.starts) s += " to " + (new Date(it.ends) - new Date(it.starts) < DAY ? fmtTime(it.ends) : fmtDay(it.ends)); return s; };
+  const ago = iso => { if (!iso) return ""; const m = (now() - new Date(iso)) / 6e4; return m < 60 ? `${Math.max(1, m | 0)} min ago` : m < 1440 ? `${m / 60 | 0} h ago` : `${m / 1440 | 0} d ago`; };
+  const tagFor = it => { const t = now(); if (it.ends && new Date(it.ends) - t > 0 && new Date(it.ends) - t < DAY) return ["Ends " + (new Date(it.ends) - t < 12 * 3600e3 ? fmtTime(it.ends) : fmtDay(it.ends)), true];
+    if (it.starts && Math.abs(new Date(it.starts) - t) < DAY && new Date(it.starts).toDateString() === new Date().toDateString()) return ["Today", true];
+    if (it.updatedAt && t - new Date(it.updatedAt) < 2 * DAY) return ["New", false]; return null; };
+
+  // ---------- loading ----------
+  async function load() {
+    if (!/^\d{5}$/.test(S.zip)) return;
+    $("#status").textContent = "Loading…"; $("#where").textContent = `${S.zip} · ${S.radius} mi`; $("#sv-where").textContent = `${S.zip} · ${S.radius} mi`;
+    zcta ||= await get("zcta.json"); index ||= await get("tiles/index.json");
+    if (!zcta) { $("#status").textContent = "Couldn't load the ZIP table. Check the connection and pull to refresh."; return; }
+    const pt = zipPoint(S.zip); if (!pt) { $("#status").textContent = "That ZIP isn't in the table yet."; return; }
+    const [lat, lon] = pt;
+    const names = tilesFor(lat, lon, S.radius).filter(n => index?.tiles?.[n]);
+    const [tiles, stateTile, national] = await Promise.all([Promise.all(names.map(n => get(`tiles/${n}.json`))), stateFor(S.zip).then(st => get(`tiles/state-${st}.json`)), get("tiles/national.json")]);
+    const nearest = new Map();
+    for (const it of tiles.flat().filter(Boolean)) { const d = miles(lat, lon, it.lat, it.lon); if (d > S.radius) continue; const k = it.id.replace(/:\d+$/, ""); const prev = nearest.get(k); if (!prev || d < prev.d) nearest.set(k, { ...it, d }); }
+    items = [...nearest.values()];
+    wide = [...(stateTile || []), ...(national || [])].map(it => ({ ...it, d: null }));
+    byId = new Map([...items, ...wide].map(it => [it.id, it]));
+    const built = index?.builtAt ? new Date(index.builtAt).toLocaleDateString(undefined, { month:"short", day:"numeric" }) : "?";
+    $("#status").dataset.built = `Data built ${built}${index?.stale?.length ? " · waiting on: " + index.stale.join(", ") : ""}`;
+    page = 1; render(); renderSaved();
+  }
+
+  // ---------- home ----------
+  const chips = $("#chips");
+  const drawChips = () => { chips.innerHTML = [["all","All"], ...Object.entries(CATS)].map(([k, v]) => `<button class="chip ${cat === k ? "on" : ""}" data-cat="${k}">${v}</button>`).join(""); };
+  chips.onclick = e => { const b = e.target.closest("button"); if (!b) return; cat = b.dataset.cat; page = 1; drawChips(); render(); };
+  $("#q-toggle").onclick = () => { $("#search").classList.toggle("on"); if ($("#search").classList.contains("on")) $("#q").focus(); else { $("#q").value = ""; q = ""; render(); } };
+  let qt; $("#q").oninput = () => { clearTimeout(qt); qt = setTimeout(() => { q = $("#q").value.trim().toLowerCase(); page = 1; render(); }, 150); };
+
+  const hit = it => !q || `${it.title} ${it.summary} ${it.place} ${it.sourceName}`.toLowerCase().includes(q);
+  const dated = it => it.starts && new Date(it.starts) > now() - DAY;
+  const live = it => it.category === "public-safety" && ((it.ends && new Date(it.ends) > now()) || (it.updatedAt && now() - new Date(it.updatedAt) < 14 * DAY));
+  const order = (a, b) => { const sa = live(a) ? 0 : 1, sb = live(b) ? 0 : 1; if (sa !== sb) return sa - sb;
+    const da = dated(a) ? 0 : 1, db = dated(b) ? 0 : 1; if (da !== db) return da - db; if (!da) return (a.starts || "").localeCompare(b.starts || ""); return (a.d ?? 1e9) - (b.d ?? 1e9); };
+
+  const card = it => { const c = COLOR[it.category] || COLOR["public-services"], tag = tagFor(it), done = S.confirmed[it.id];
+    return `<a class="card" href="#item/${encodeURIComponent(it.id)}"><div class="band" style="background:${c[0]}"></div><div class="in">
+      <div class="row"><span class="cat" style="color:${c[1]}">${esc(CATS[it.category] || it.category)}</span>${tag ? `<span class="tag" style="color:${c[1]};background:${c[2]}">${esc(tag[0])}</span>` : ""}</div>
+      <h3>${esc(it.title)}</h3>${it.summary ? `<p>${esc(it.summary)}</p>` : ""}
+      <div class="row"><span class="meta">${esc([it.sourceName, it.d != null ? `${it.d < 1 ? it.d.toFixed(1) : it.d.toFixed(0)} mi` : it.state ? "statewide" : "nationwide", whenLine(it)].filter(Boolean).join(" · "))}</span>
+      <div class="acts"><button class="mini ${done ? "done" : ""}" data-confirm="${esc(it.id)}" aria-label="Confirm this is still accurate"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></button><button class="mini" data-flag="${esc(it.id)}" aria-label="Flag a problem"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4h11l-1 4 1 4H5"/></svg></button></div></div>
+    </div></a>`; };
+
+  function render() {
+    if (!items.length && !wide.length) return;
+    // happening soon: dated local items in the next 14 days, soonest first
+    const soon = items.filter(it => it.starts && new Date(it.starts) > now() - 3600e3 && new Date(it.starts) < now() + 14 * DAY && it.category !== "work").sort((a, b) => a.starts.localeCompare(b.starts)).slice(0, 8);
+    $("#soon-wrap").style.display = soon.length && cat === "all" && !q ? "" : "none";
+    $("#soon").innerHTML = soon.map(it => { const c = COLOR[it.category] || COLOR["public-services"]; return `<a href="#item/${encodeURIComponent(it.id)}" style="background:${c[2]};color:${c[1]}"><span class="d">${esc(whenLine(it))}</span><span class="t" style="color:var(--ink)">${esc(it.title)}</span><span class="s">${esc(it.sourceName)} · ${it.d < 1 ? it.d.toFixed(1) : it.d.toFixed(0)} mi</span></a>`; }).join("");
+    const local = items.filter(it => (cat === "all" || it.category === cat) && hit(it)).sort(order);
+    const far = wide.filter(it => (cat === "all" || it.category === cat) && hit(it)).sort((a, b) => (b.starts || "").localeCompare(a.starts || ""));
+    const list = [...local, ...far]; const shown = list.slice(0, page * PAGE);
+    $("#status").textContent = `${local.length} nearby · ${far.length} statewide or nationwide · ${$("#status").dataset.built || ""}`;
+    $("#feed").innerHTML = (shown.length ? shown.map(card).join("") : `<div class="empty">${q ? `Nothing nearby matches “${esc(q)}”.` : `Nothing in this category within ${S.radius} miles. Try a wider distance in Settings.`}</div>`) + (list.length > shown.length ? `<button class="more" id="more">Show ${Math.min(PAGE, list.length - shown.length)} more of ${list.length}</button>` : "");
+    const m = $("#more"); if (m) m.onclick = () => { page++; render(); };
+  }
+  $("#feed").addEventListener("click", e => { const c = e.target.closest("[data-confirm]"), f = e.target.closest("[data-flag]"); if (!c && !f) return; e.preventDefault(); if (c) confirmItem(c.dataset.confirm); else flagItem(f.dataset.flag); });
+
+  // ---------- confirm / flag / contribute: structured, queued, never shown to other users ----------
+  const toast = m => { const t = $("#toast"); t.textContent = m; t.classList.add("on"); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("on"), 2200); };
+  async function send(kind, body) { const rec = { kind, ...body, at: new Date().toISOString(), zip3: S.zip.slice(0, 3) };
+    if (CONTRIB) { try { const r = await fetch(CONTRIB, { method:"POST", headers:{ "content-type":"application/json" }, body: JSON.stringify(rec) }); if (r.ok) return true; } catch {} }
+    S.queue.push(rec); save(); return false; }
+  function confirmItem(id) { if (S.confirmed[id]) return toast("Already confirmed, thank you."); S.confirmed[id] = now(); save(); send("confirm", { id }); toast("Thanks. Confirmed."); render(); if (current === id) drawDetail(id); }
+  function flagItem(id) { const why = prompt("What's wrong? (wrong place, over, broken link, not an official source)"); if (why == null) return; S.flagged[id] = now(); save(); send("flag", { id, why: why.slice(0, 200) }); toast("Flagged. A person will look."); }
+
+  // ---------- detail ----------
+  let current = null;
+  function drawDetail(id) { const it = byId.get(id); if (!it) { go("#home"); return; } current = id; const c = COLOR[it.category] || COLOR["public-services"];
+    $("#d-hero").style.background = c[0]; $("#d-eyebrow").textContent = [CATS[it.category] || it.category, tagFor(it)?.[0]].filter(Boolean).join(" · "); $("#d-title").textContent = it.title;
+    $("#d-src").href = it.sourceUrl; let host = ""; try { host = new URL(it.sourceUrl).hostname.replace(/^www\./, ""); } catch {} $("#d-srcname").textContent = [it.sourceName, host].filter(Boolean).join(" · ");
+    $("#d-summary").textContent = it.summary || ""; $("#d-summary").style.display = it.summary ? "" : "none";
+    const facts = []; if (it.starts) facts.push(["When", whenLine(it)]); if (it.place) facts.push(["Where", it.place + (it.d != null ? ` · ${it.d < 1 ? it.d.toFixed(1) : it.d.toFixed(0)} mi` : "")]); if (!it.place && it.state) facts.push(["Where", "Statewide, " + it.state]); if (!it.place && !it.state && it.lat == null) facts.push(["Where", "Nationwide"]);
+    $("#d-facts").innerHTML = facts.map(([k, v]) => `<div class="fact"><span class="k">${k}</span><span class="v">${esc(v)}</span></div>`).join("");
+    $("#d-updated").textContent = it.updatedAt ? `Last changed at the source ${ago(it.updatedAt)}. Every line above comes from ${it.sourceName}; nothing is written by us or by other users.` : `Every line above comes from ${it.sourceName}; nothing is written by us or by other users.`;
+    $("#d-save").style.opacity = S.saved[id] ? 1 : .8; $("#d-save").querySelector("svg").setAttribute("fill", S.saved[id] ? "#fff" : "none");
+    const done = !!S.confirmed[id]; $("#d-confirm").querySelector("span").textContent = done ? "Confirmed" : "Confirm"; $("#d-confirm").disabled = done; }
+  $("#d-back").onclick = () => history.length > 1 ? history.back() : go("#home");
+  $("#d-save").onclick = () => { if (S.saved[current]) { delete S.saved[current]; toast("Removed from Saved."); } else { S.saved[current] = now(); toast("Saved."); } save(); drawDetail(current); renderSaved(); };
+  $("#d-share").onclick = async () => { const it = byId.get(current); if (!it) return; try { if (navigator.share) await navigator.share({ title: it.title, url: it.sourceUrl }); else { await navigator.clipboard.writeText(it.sourceUrl); toast("Official link copied."); } } catch {} };
+  $("#d-confirm").onclick = () => confirmItem(current); $("#d-flag").onclick = () => flagItem(current);
+
+  // ---------- saved & alerts ----------
+  function renderSaved() { $("#alerts").innerHTML = Object.entries(CATS).map(([k, v]) => `<div class="r"><div class="l"><span class="dot" style="background:${COLOR[k][0]}"></span>${v}</div><button class="sw ${S.alerts[k] ? "on" : ""}" data-alert="${k}" role="switch" aria-checked="${!!S.alerts[k]}" aria-label="${v} alerts"></button></div>`).join("");
+    const ids = Object.keys(S.saved).sort((a, b) => S.saved[b] - S.saved[a]);
+    $("#saved-list").innerHTML = ids.length ? ids.map(id => { const it = byId.get(id); if (!it) return ""; const c = COLOR[it.category] || COLOR["public-services"]; return `<a class="srow" href="#item/${encodeURIComponent(id)}"><span class="bar" style="background:${c[0]}"></span><span style="flex:1"><b>${esc(it.title)}</b><small>${esc([whenLine(it), it.sourceName].filter(Boolean).join(" · "))}</small></span><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>`; }).join("") : `<div class="empty" style="margin:0">Nothing saved yet. The bookmark on any item keeps it here.</div>`; }
+  $("#alerts").onclick = e => { const b = e.target.closest("[data-alert]"); if (!b) return; S.alerts[b.dataset.alert] = !S.alerts[b.dataset.alert]; save(); renderSaved(); };
+  $("#push-note").textContent = ("Notification" in window) ? "" : "This browser can't deliver alerts; the iPhone app can.";
+
+  // ---------- what's new ----------
+  async function renderNew() { const list = await get("whats-new.json");
+    const rows = Array.isArray(list) && list.length ? list : [{ when: "Soon", status: "Reviewing", title: "This page will show what neighbors added and what came of their ideas.", note: "Nothing has landed yet near you. The first contribution shows up here, with no name attached." }];
+    const pill = s => ({ Live:["var(--accent-ink)","var(--accent-soft)"], Done:["var(--accent-ink)","var(--accent-soft)"], Reviewing:["var(--sand-ink)","var(--sand)"] }[s] || ["var(--ink2)","var(--line2)"]);
+    $("#new-list").innerHTML = rows.map(r => { const [fg, bg] = pill(r.status); return `<div class="nw"><div class="row"><span class="when">${esc(r.when)}</span><span class="tag" style="color:${fg};background:${bg}">${esc(r.status)}</span></div><b>${esc(r.title)}</b>${r.note ? `<small>${esc(r.note)}</small>` : ""}</div>`; }).join("")
+      + (S.queue.length ? `<div class="nw" style="background:var(--accent-soft);border-color:var(--accent-soft)"><b style="color:var(--accent-ink)">${S.queue.length} of your contributions are waiting to send</b><small style="color:var(--accent-ink)">They're kept on this phone until the contribution queue is reachable.</small></div>` : ""); }
+
+  // ---------- contribute ----------
+  let kind = "source", step = 1, form = {};
+  $("#c-kinds").onclick = e => { const b = e.target.closest("[data-kind]"); if (!b) return; kind = b.dataset.kind; step = 1; form = {}; $$("#c-kinds .opt").forEach(x => x.classList.toggle("on", x === b)); drawContribute(); };
+  $("#c-close").onclick = () => go("#home");
+  const domainOf = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; } };
+  function drawContribute() {
+    const p = $("#c-panel"); const steps = n => `<div class="steps">${[1,2,3,4].map(i => `<i class="${i <= step ? "on" : ""}"></i>`).join("")}</div>`;
+    const head = (label, n) => `<div style="display:flex;justify-content:space-between"><span class="lab">${label}</span><span class="hint" style="font-weight:600">Step ${step} of ${n}</span></div>`;
+    if (kind === "idea") { p.innerHTML = `${head("Suggest an idea", 1)}<label for="c-idea">What would make this more useful?</label><textarea id="c-idea" maxlength="600" placeholder="A source you wish were here, a category that's missing, something confusing…">${esc(form.text || "")}</textarea><span class="hint">Ideas go to us privately. What comes of them is posted in What's new, without your name.</span><button class="btn primary" id="c-next">Send</button>`; }
+    else if (step === 1) { const d = domainOf(form.link || ""), ok = d && ALLOWED.test(d); p.innerHTML = `${head(kind === "source" ? "Add a source" : "Add an item", 4)}${steps()}<label for="c-link">${kind === "source" ? "Paste the page or calendar link" : "Paste the official page for this item"}</label><input id="c-link" type="url" inputmode="url" placeholder="https://" value="${esc(form.link || "")}">${form.link ? (ok ? `<div class="note"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg><span>${esc(d)} looks like a public institution. Sources must be a government, school, library or registered nonprofit.</span></div>` : `<div class="note warn"><span>${esc(d || "That")} isn't a domain we can verify (.gov, .edu, .org, .us). A page from a news site, a business or a social network can't be added; nothing wrong with it, it just belongs elsewhere.</span></div>`) : ""}<span class="hint">Next: what it covers, then where it is, then a last look. Nothing is published until the link resolves and a person reviews it.</span><button class="btn primary" id="c-next" ${ok ? "" : "disabled"}>Continue</button>`;
+      $("#c-link").oninput = e => { form.link = e.target.value.trim(); drawContribute(); $("#c-link").focus(); $("#c-link").setSelectionRange(form.link.length, form.link.length); }; }
+    else if (step === 2) { p.innerHTML = `${head(kind === "source" ? "Add a source" : "Add an item", 4)}${steps()}<label for="c-cat">What does it cover?</label><select id="c-cat">${Object.entries(CATS).map(([k, v]) => `<option value="${k}" ${form.cat === k ? "selected" : ""}>${v}</option>`).join("")}</select><label for="c-title" style="font-size:14px">${kind === "source" ? "Who publishes it?" : "Title, as the page gives it"}</label><input id="c-title" maxlength="120" placeholder="${kind === "source" ? "Alexandria Library" : "Saturday story time"}" value="${esc(form.title || "")}"><button class="btn primary" id="c-next">Continue</button>`; }
+    else if (step === 3) { p.innerHTML = `${head(kind === "source" ? "Add a source" : "Add an item", 4)}${steps()}<label for="c-zip">Where is it?</label><input id="c-zip" inputmode="numeric" maxlength="5" placeholder="ZIP code of the place" value="${esc(form.zip || S.zip)}"><span class="hint">Items have to be placeable by ZIP before they can be shown as local. A source that covers a whole county or state is fine: give the ZIP of its office.</span>${kind === "item" ? `<label for="c-when" style="font-size:14px">When (optional)</label><input id="c-when" type="datetime-local" value="${esc(form.when || "")}">` : ""}<button class="btn primary" id="c-next">Continue</button>`; }
+    else { p.innerHTML = `${head(kind === "source" ? "Add a source" : "Add an item", 4)}${steps()}<label>A last look</label><div class="list"><div class="r"><span class="hint">Link</span><span style="font-size:13px;word-break:break-all;text-align:right">${esc(form.link)}</span></div><div class="r"><span class="hint">Covers</span><span style="font-size:13px">${esc(CATS[form.cat] || "")}</span></div><div class="r"><span class="hint">${kind === "source" ? "Publisher" : "Title"}</span><span style="font-size:13px;text-align:right">${esc(form.title || "—")}</span></div><div class="r"><span class="hint">ZIP</span><span style="font-size:13px">${esc(form.zip)}</span></div>${form.when ? `<div class="r"><span class="hint">When</span><span style="font-size:13px">${esc(form.when)}</span></div>` : ""}</div><span class="hint">Only what's listed here is sent. No name, no email, no location; the first three digits of your ZIP travel with it so we know the area.</span><button class="btn primary" id="c-next">Send for review</button>`; }
+    $("#c-next").onclick = async () => {
+      if (kind === "idea") { const t = $("#c-idea").value.trim(); if (!t) return; const sent = await send("idea", { text: t }); toast(sent ? "Sent. Thank you." : "Kept on this phone; it will send when the queue is reachable."); kind = "source"; step = 1; form = {}; go("#new"); return; }
+      if (step === 2) { form.cat = $("#c-cat").value; form.title = $("#c-title").value.trim(); }
+      if (step === 3) { form.zip = $("#c-zip").value.trim(); if (!/^\d{5}$/.test(form.zip)) return toast("A five-digit ZIP, please."); if ($("#c-when")) form.when = $("#c-when").value; }
+      if (step < 4) { step++; drawContribute(); return; }
+      const sent = await send(kind, form); toast(sent ? "Sent for review. Thank you." : "Kept on this phone; it will send when the queue is reachable."); kind = "source"; step = 1; form = {}; $$("#c-kinds .opt").forEach((x, i) => x.classList.toggle("on", i === 0)); go("#new");
+    };
+  }
+
+  // ---------- welcome / settings ----------
+  const zipEl = $("#zip");
+  $("#radius").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.radius = +b.dataset.r; for (const x of $("#radius").children) x.classList.toggle("on", x === b); };
+  zipEl.oninput = () => { zipEl.value = zipEl.value.replace(/\D/g, "").slice(0, 5); $("#go").disabled = zipEl.value.length !== 5; };
+  $("#go").onclick = () => { S.zip = zipEl.value; save(); items = []; wide = []; go("#home"); load(); };
+  function drawWelcome(settings) { zipEl.value = S.zip; $("#go").disabled = !/^\d{5}$/.test(S.zip); for (const x of $("#radius").children) x.classList.toggle("on", +x.dataset.r === S.radius);
+    $("#w-title").textContent = settings ? "Your ZIP and distance." : "What's happening near you, from official sources only."; $("#go").textContent = settings ? "Save" : "Show me what's near";
+    $("#w-foot").innerHTML = settings ? `Everything the app remembers lives on this phone. <a href="#" id="wipe" style="text-decoration:underline">Forget it all</a>.` : "You can change the ZIP or distance any time from Settings.";
+    const w = $("#wipe"); if (w) w.onclick = e => { e.preventDefault(); if (!confirm("Forget the ZIP, saved items, alert choices and anything waiting to send?")) return; localStorage.removeItem(K); localStorage.removeItem("civicboard"); location.hash = ""; location.reload(); }; }
+
+  // ---------- routing ----------
+  function go(h) { if (location.hash === h) route(); else location.hash = h; }
+  function route() {
+    const h = location.hash || (S.zip ? "#home" : "#welcome"); const [name, arg] = h.slice(1).split("/");
+    const screen = { home:"s-home", item:"s-detail", contribute:"s-contribute", saved:"s-saved", new:"s-new", settings:"s-welcome", welcome:"s-welcome" }[name] || "s-home";
+    if (!S.zip && screen !== "s-welcome") { location.hash = "#welcome"; return; }
+    $$(".screen").forEach(s => s.classList.toggle("on", s.id === screen));
+    $("#tabs").style.display = (screen === "s-detail" || screen === "s-contribute" || name === "welcome") ? "none" : "";
+    $$("#tabs a[data-tab]").forEach(a => a.classList.toggle("on", a.dataset.tab === name));
+    window.scrollTo(0, 0);
+    if (name === "item") drawDetail(decodeURIComponent(arg || "")); if (name === "saved") renderSaved(); if (name === "new") renderNew(); if (name === "contribute") { step = 1; form = {}; drawContribute(); } if (screen === "s-welcome") drawWelcome(name === "settings");
+  }
+  window.addEventListener("hashchange", route);
+  drawChips(); route(); if (S.zip) load();
+  // bring back the queue when the app returns to the foreground
+  document.addEventListener("visibilitychange", async () => { if (document.visibilityState !== "visible" || !CONTRIB || !S.queue.length) return; const q = S.queue; S.queue = []; save(); for (const rec of q) await send(rec.kind, rec); });
+})();
+</script>
+</body>
+</html>

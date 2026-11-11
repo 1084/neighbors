@@ -10,6 +10,7 @@ neighbors/
   SOURCES.md            every feed, its key, its terms, and the date they were read
   docs/schema.md        the item shape and the tile layout
   docs/index.html       the web viewer (also the pipeline's test harness)
+  docs/app/index.html   the app: six screens (nearby, item, contribute, saved and alerts, what's new, settings); the iPhone shell bundles this file
   docs/data/            built output: tiles/*.json, tiles/index.json, zcta.json
   data/zcta.json        ZIP → point, from the Census ZCTA Gazetteer (npm run zcta)
   data/feeds/*.json     each feed's last good output (the regression guard's memory)
