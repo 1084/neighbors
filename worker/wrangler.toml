@@ -8,7 +8,7 @@ routes = [{ pattern = "neighbors-api.johnhubert.llc", custom_domain = true }]
 [[d1_databases]]
 binding = "DB"
 database_name = "neighbors"
-database_id = "REPLACE_WITH_THE_ID_FROM_wrangler_d1_create"
+database_id = "fb8c8c9b-ed66-4b76-becd-8f4864f53136"
 
 [vars]
 DATA_BASE = "https://johnhubert.llc/floor/data"
@@ -16,6 +16,6 @@ ALLOWED_ORIGINS = "https://johnhubert.llc,capacitor://localhost,http://localhost
 
 # Secrets (set with `wrangler secret put NAME`):
 #   ADMIN_KEY   a long random string for /v1/admin/* and the review page (openssl rand -hex 32)
-#   GH_TOKEN    (later) a fine-grained GitHub token scoped to 1084/neighbors, contents: write, so approving a
-#               contribution can commit it to data/contrib/ and whats-new.json; until it is set, approvals
-#               are exported from the review page as JSON instead
+#   GH_TOKEN    a fine-grained GitHub token scoped to 1084/neighbors, contents: read and write, so approving a
+#               contribution commits it to data/contrib/approved.json; without it, approvals are exported
+#               from the review page as JSON instead (see README)

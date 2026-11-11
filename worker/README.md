@@ -22,7 +22,17 @@ Point the app at it: in `docs/app/index.html`, `NEIGHBORS_CONTRIB` becomes `http
 
 ## Daily
 
-Open `/review`. Flags are listed first. For a source or item: open the link, check it fits the charter's fence (an institution with public accountability, placeable by ZIP), Approve or Decline with a note. Approved rows appear on What's new as "A neighbor added …" with your note. Ideas get Done with a note that becomes the public outcome. "Export approved" downloads the approved sources and items as JSON for `data/contrib/`, which is how they get into the nightly build until `GH_TOKEN` automates that step.
+Open `/review`. Flags are listed first. For a source or item: open the link, check it fits the charter's fence (an institution with public accountability, placeable by ZIP), Approve or Decline with a note. Approved rows appear on What's new as "A neighbor added …" with your note. Ideas get Done with a note that becomes the public outcome. With `GH_TOKEN` set, each approval of a source or item is committed to `data/contrib/approved.json` in the repo at once (one small commit, author "neighbors-queue"), and the nightly `contrib` feed turns that file into items placed at their ZIP. Without the token, "Export approved" downloads the same JSON for you to commit by hand.
+
+### GH_TOKEN (once)
+
+GitHub → Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → Generate new token. Name it `neighbors-queue`, expiration a year, repository access **Only select repositories → 1084/neighbors**, permissions **Contents: Read and write** and nothing else. Copy it, then from this folder:
+
+```sh
+npx wrangler secret put GH_TOKEN      # paste when prompted; it never goes in a file or a chat
+```
+
+`/v1/admin/decide` then returns `committed: { ok: true, count }` on each approval. If it returns `ok: false`, the token has expired or lost the repo; the approval is still saved in D1 and will appear in the next export.
 
 ## Endpoints
 

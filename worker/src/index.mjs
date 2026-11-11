@@ -129,7 +129,32 @@ async function adminDecide(req, env) {
   if (!b?.id || !["approved", "declined", "done", "new"].includes(b.status)) return json(req, env, { error: "id and status" }, 400);
   const pub = b.public === undefined ? (b.status === "approved" || b.status === "done" ? 1 : 0) : (b.public ? 1 : 0);
   await env.DB.prepare("UPDATE contributions SET status = ?, note = ?, public = ?, decided_at = ? WHERE id = ?").bind(b.status, clean(b.note, 200) || null, pub, b.status === "new" ? null : now(), b.id).run();
-  return json(req, env, { ok: true });
+  let committed = null;
+  if (b.status === "approved" && env.GH_TOKEN) { const row = await env.DB.prepare("SELECT id, kind, link, domain, category, title, zip, starts, note, decided_at FROM contributions WHERE id = ?").bind(b.id).first(); if (row && (row.kind === "source" || row.kind === "item")) committed = await commitApproved(env, row); }
+  return json(req, env, { ok: true, committed });
+}
+
+// Approved sources and items go straight into the repo as data/contrib/approved.json, which the nightly
+// pipeline reads as the "contrib" feed. One small commit per approval, through GitHub's contents API,
+// with a fine-grained token scoped to this one repo (contents: write). The file is read, the row
+// appended (or replaced, by id), and written back with its sha so two approvals can't clobber each other.
+const GH_REPO = "1084/neighbors", GH_PATH = "data/contrib/approved.json";
+async function commitApproved(env, row) {
+  const h = { authorization: `Bearer ${env.GH_TOKEN}`, accept: "application/vnd.github+json", "user-agent": UA["user-agent"], "x-github-api-version": "2022-11-28" };
+  const api = `https://api.github.com/repos/${GH_REPO}/contents/${GH_PATH}`;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    let sha = null, list = [];
+    const r = await fetch(api, { headers: h });
+    if (r.ok) { const j = await r.json(); sha = j.sha; try { list = JSON.parse(atob(j.content.replace(/\n/g, ""))); } catch { list = []; } }
+    else if (r.status !== 404) return { ok: false, status: r.status };
+    const rec = { id: row.id, kind: row.kind, link: row.link, domain: row.domain, category: row.category, title: row.title, zip: row.zip, starts: row.starts || null, note: row.note || null, approvedAt: row.decided_at || now() };
+    list = [...list.filter(x => x.id !== row.id), rec];
+    const body = { message: `contrib: ${row.kind} from ${row.domain}${row.title ? ` (${row.title})` : ""}`, content: btoa(unescape(encodeURIComponent(JSON.stringify(list, null, 2) + "\n"))), committer: { name: "neighbors-queue", email: "support@johnhubert.llc" }, ...(sha ? { sha } : {}) };
+    const w = await fetch(api, { method: "PUT", headers: { ...h, "content-type": "application/json" }, body: JSON.stringify(body) });
+    if (w.ok) return { ok: true, count: list.length };
+    if (w.status !== 409 && w.status !== 422) return { ok: false, status: w.status };
+  }
+  return { ok: false, status: 409 };
 }
 async function adminExport(req, env) {
   const { results } = await env.DB.prepare("SELECT id, kind, link, domain, category, title, zip, starts, decided_at FROM contributions WHERE status = 'approved' AND kind IN ('source','item') ORDER BY decided_at").all();
