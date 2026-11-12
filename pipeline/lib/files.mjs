@@ -16,7 +16,8 @@ export async function fetchCached(url, name, { fixture } = {}) {
   mkdirSync(CACHE, { recursive: true });
   const path = resolve(CACHE, name);
   if (existsSync(path) && (Date.now() - statSync(path).mtimeMs) < MAX_AGE_DAYS * 864e5) { log(`${name}: using cached copy`); return readFileSync(path); }
-  const r = await fetch(url, { headers: { "user-agent": USER_AGENT } });
+  // some .gov hosts refuse an unfamiliar user agent outright (SSA: 403); identify as a browser for file downloads
+  const r = await fetch(url, { headers: { "user-agent": "Mozilla/5.0 (compatible; neighbors-pipeline; +https://johnhubert.llc/neighbors/)", accept: "text/csv,application/zip,application/octet-stream,*/*", referer: new URL(url).origin + "/" } });
   if (!r.ok) throw new Error(`HTTP ${r.status} ${url}`);
   const buf = Buffer.from(await r.arrayBuffer());
   writeFileSync(path, buf);

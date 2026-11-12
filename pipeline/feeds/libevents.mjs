@@ -39,19 +39,25 @@ export default async function libevents() {
         events = parseIcal(ics).map(e => ({ id: e.UID || e.URL, title: e.SUMMARY, text: e.DESCRIPTION, loc: e.LOCATION, cats: e.CATEGORIES || [], starts: e.DTSTART?.iso, ends: e.DTEND?.iso, allDay: !!e.DTSTART?.allDay, url: e.URL, geo: e.GEO }));
       } else if (sys.kind === "communico") {
         // the events page is JS-rendered, but each event's ICS is public: harvest ids from the page, then read each ICS
-        const html = await fetchText(sys.feed, sys.fixture);
+        // the public page renders events client-side; the libnet host serves the same list server-side
+        let html = await fetchText(sys.feed, sys.fixture);
+        if (!/\/event\/\d{6,}/.test(html) && !process.env.FIXTURES) { for (const alt of ["https://alexandria.libnet.info/events?r=thismonth", "https://alexandria.libnet.info/events?r=nextmonth", "https://alexandria.libnet.info/events/upcoming"]) { try { html += await fetchText(alt, sys.fixture); } catch {} } }
         const ids = [...new Set([...html.matchAll(/\/event\/(\d{6,})/g)].map(m => m[1]))].slice(0, 150);
         for (const id of ids) {
           try { const e = parseIcal(await fetchText(`https://calendar-generator.communico.co/attend/${id}`, `communico-${id}.ics`))[0]; if (e) events.push({ id, title: e.SUMMARY, text: e.DESCRIPTION, loc: (e.LOCATION || "").split("\n")[0], cats: e.CATEGORIES || [], starts: e.DTSTART?.iso, ends: e.DTEND?.iso, allDay: !!e.DTSTART?.allDay, url: e.URL || `https://alexlibraryva.org/event/${id}`, geo: e.GEO }); } catch {}
         }
       }
     } catch (e) { log(`libevents ${sys.id}: ${e.message}`); continue; }
-    let n = 0;
+    // say what came back, so a zero is diagnosable from the Actions log
+    const sample = events.slice(0, 3).map(e => `${(e.starts || "?").slice(0, 10)} "${(e.title || "").slice(0, 30)}" @ ${e.loc || "?"}${e.geo ? " (geo)" : ""}`).join("; ");
+    log(`libevents ${sys.id}: ${events.length} events parsed; branches known: ${branches.length}; sample: ${sample || "none"}`);
+    let n = 0, skipped = { nodate: 0, closed: 0, window: 0, noplace: 0 };
     for (const e of events) {
-      if (!e.starts || !e.title || SKIP.test(e.title)) continue;
-      const t = new Date(e.starts).getTime(); if (t < today || t > horizon) continue;
+      if (!e.starts || !e.title) { skipped.nodate++; continue; }
+      if (SKIP.test(e.title)) { skipped.closed++; continue; }
+      const t = new Date(e.starts).getTime(); if (t < today || t > horizon) { skipped.window++; continue; }
       const b = e.geo ? null : placeOf(e.loc); const lat = e.geo?.[0] ?? b?.lat, lon = e.geo?.[1] ?? b?.lon;
-      if (lat == null || lon == null) continue; // an online or unplaceable event is not local
+      if (lat == null || lon == null) { skipped.noplace++; continue; } // an online or unplaceable event is not local
       const kids = KIDS.test(`${e.title} ${e.text || ""} ${e.cats.join(" ")}`);
       items.push(item({
         id: `libevents:${sys.id}:${e.id}`, feedId: "libevents", category: kids ? "kids-and-family" : "education",
@@ -61,7 +67,7 @@ export default async function libevents() {
         sourceUrl: e.url || sys.web, sourceName: sys.name,
       })); n++;
     }
-    log(`libevents ${sys.id}: ${events.length} events → ${n} placed, upcoming`);
+    log(`libevents ${sys.id}: ${n} placed; skipped ${JSON.stringify(skipped)}`);
   }
   return items;
 }
