@@ -1,0 +1,13 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:2713bb5a
+DTSTART;TZID=America/New_York:20261117T110000
+DTEND;TZID=America/New_York:20261117T114000
+SUMMARY:1000 Books Story Time
+LOCATION:Kate Waller Barrett Branch Library\nKate Waller Barrett Branch Library
+GEO:38.807858;-77.0471815
+URL;VALUE=URI:https://alexandria.libnet.info/event/10116538
+DESCRIPTION:Ages 2+.\nhttps://alexandria.libnet.info/event/10116538
+END:VEVENT
+END:VCALENDAR

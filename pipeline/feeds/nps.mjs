@@ -49,8 +49,12 @@ export default async function nps() {
     const p = byCode[e.parkcode || e.parkCode]; const lat = +e.latitude || p?.latitude, lon = +e.longitude || p?.longitude;
     if (!lat || !lon || !(e.infourl || p?.url)) continue;
     const day = e.dates?.[0] || e.datestart;
+    // an event's tags and category decide where it shows: volunteer work days under volunteering,
+    // Junior Ranger and family programs under kids-and-family, the rest under public-spaces
+    const blob = `${e.category || ""} ${(e.tags || []).join(" ")} ${e.title || ""}`;
+    const category = /volunteer|service day|clean-?up|stewardship/i.test(blob) ? "volunteering" : /junior ranger|kids?|children|family|families|youth/i.test(blob) ? "kids-and-family" : "public-spaces";
     items.push(item({
-      id: `nps:event:${e.id}`, feedId: "nps", category: "public-spaces",
+      id: `nps:event:${e.id}`, feedId: "nps", category,
       title: e.title, summary: stripHtml(e.description), starts: day ? `${day}T${e.times?.[0]?.timestart || "09:00"}:00` : null,
       ends: day ? `${day}T${e.times?.[0]?.timeend || "17:00"}:00` : null,
       lat, lon, place: e.location || p?.fullName, state: (p?.states || "").split(",")[0],

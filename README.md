@@ -30,6 +30,8 @@ neighbors/
 | `USDA_API_KEY` | https://www.usdalocalfoodportal.com/fe/fregisterpublicapi/ | usda |
 | `GOOGLE_CIVIC_KEY` | Google Cloud console → enable Civic Information API → credentials | civic |
 | `FDA_API_KEY` | https://open.fda.gov/apis/authentication/ (optional; raises the limit) | recalls |
+| `VA_API_KEY` | https://developer.va.gov/explore/api/va-facilities (free; "apikey" header) | vafacilities |
+| `HEADSTART_API_KEY` | https://headstart.gov/developers/guide (optional; the center endpoint answers without one) | headstart |
 
 NWS needs no key; the pipeline sends the `User-Agent` in `pipeline/lib/util.mjs`. Add each key under GitHub → Settings → Secrets and variables → Actions. A feed whose key is missing is skipped, not failed, so the pipeline runs with whatever keys exist.
 

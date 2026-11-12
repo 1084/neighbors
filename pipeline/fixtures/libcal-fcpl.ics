@@ -1,0 +1,44 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Springshare//LibCal//EN
+X-WR-CALNAME:Library Events
+X-WR-TIMEZONE:America/New_York
+BEGIN:VEVENT
+UID:LibCal-6524-17553049
+DTSTAMP:20260901T000000Z
+DTSTART;TZID=America/New_York:20261117T103000
+DTEND;TZID=America/New_York:20261117T110000
+SUMMARY:Preschool Storytime
+LOCATION:Sherwood Regional Library
+CATEGORIES:Storytime
+URL:https://librarycalendar.fairfaxcounty.gov/event/17553049
+DESCRIPTION:Stories\, songs and rhymes for ages 3-5 with a caregiver.
+END:VEVENT
+BEGIN:VEVENT
+UID:LibCal-6524-17553050
+DTSTART;VALUE=DATE:20261117
+DTEND;VALUE=DATE:20261117
+SUMMARY:All FCPL Branches and Offices Will Be Closed
+LOCATION:ALL
+CATEGORIES:Author Event
+URL:https://librarycalendar.fairfaxcounty.gov/event/17553050
+END:VEVENT
+BEGIN:VEVENT
+UID:LibCal-6524-17553051
+DTSTART;TZID=America/New_York:20261117T190000
+DTEND;TZID=America/New_York:20261117T203000
+SUMMARY:Resume Workshop
+LOCATION:Online
+CATEGORIES:Jobs
+URL:https://librarycalendar.fairfaxcounty.gov/event/17553051
+END:VEVENT
+BEGIN:VEVENT
+UID:LibCal-6524-17553052
+DTSTART;TZID=America/New_York:20261117T140000
+DTEND;TZID=America/New_York:20261117T150000
+SUMMARY:Book Discussion
+LOCATION:Sherwood Regional Library
+CATEGORIES:Book Clubs
+URL:https://librarycalendar.fairfaxcounty.gov/event/17553052
+END:VEVENT
+END:VCALENDAR

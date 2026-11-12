@@ -18,6 +18,53 @@
    "longitude": "-77.253",
    "location": "Great Falls Park visitor center",
    "infourl": "https://www.nps.gov/grfa"
+  },
+  {
+   "id": "e2",
+   "title": "Volunteer trail day, Dyke Marsh",
+   "parkcode": "gwmp",
+   "description": "<p>Help clear the boardwalk trail.</p>",
+   "category": "Volunteer",
+   "tags": [
+    "Volunteer",
+    "Trail Work"
+   ],
+   "dates": [
+    "2099-11-15"
+   ],
+   "times": [
+    {
+     "timestart": "9:00 AM",
+     "timeend": "12:00 PM"
+    }
+   ],
+   "latitude": "38.77",
+   "longitude": "-77.05",
+   "location": "Belle Haven",
+   "infourl": "https://www.nps.gov/gwmp"
+  },
+  {
+   "id": "e3",
+   "title": "Junior Ranger Day",
+   "parkcode": "gwmp",
+   "description": "<p>Earn a badge.</p>",
+   "tags": [
+    "Kids & Family",
+    "Junior Ranger"
+   ],
+   "dates": [
+    "2099-11-16"
+   ],
+   "times": [
+    {
+     "timestart": "10:00 AM",
+     "timeend": "12:00 PM"
+    }
+   ],
+   "latitude": "38.99",
+   "longitude": "-77.25",
+   "location": "Great Falls",
+   "infourl": "https://www.nps.gov/grfa"
   }
  ]
 }

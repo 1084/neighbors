@@ -20,6 +20,10 @@ import usda from "./feeds/usda.mjs";
 import civic from "./feeds/civic.mjs";
 import vaElections from "./feeds/va-elections.mjs";
 import contrib from "./feeds/contrib.mjs";
+import libevents from "./feeds/libevents.mjs";
+import headstart from "./feeds/headstart.mjs";
+import ssa from "./feeds/ssa.mjs";
+import vafacilities from "./feeds/vafacilities.mjs";
 import usajobs from "./feeds/usajobs.mjs";
 import schools from "./feeds/schools.mjs";
 import libraries from "./feeds/libraries.mjs";
@@ -31,7 +35,7 @@ if (!existsSync(resolve(DATA, "zcta.json"))) {
   process.exit(1);
 }
 
-const FEEDS = { nws, recalls, nps, ridb, usda, civic, "va-elections": vaElections, contrib, usajobs, schools, libraries, healthcenters, hospitals };
+const FEEDS = { nws, recalls, nps, ridb, usda, civic, "va-elections": vaElections, contrib, libevents, headstart, ssa, vafacilities, usajobs, schools, libraries, healthcenters, hospitals };
 const only = process.env.FEEDS ? process.env.FEEDS.split(",") : Object.keys(FEEDS);
 
 const results = [];
