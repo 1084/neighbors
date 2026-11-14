@@ -1,7 +1,11 @@
 // Social Security field offices: SSA's open-data CSV of every office with address and hours
 // (https://www.ssa.gov/open/data/FO-RS-Address-Open-Close-Time-App-Devs.html; updated quarterly;
 // no coordinates, so each office is placed at its ZIP centroid, which is within a mile or two).
-import { item, log } from "../lib/util.mjs";
+// ssa.gov's CDN refuses GitHub's runners (403) whatever the headers, so a committed snapshot in
+// pipeline/static/ is the fallback; refresh it by hand each quarter (see README).
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { item, log, ROOT } from "../lib/util.mjs";
 import { fetchCached, parseCsv, titleCase } from "../lib/files.mjs";
 import { zipPoint } from "../lib/geo.mjs";
 
@@ -9,7 +13,10 @@ const URL = "https://www.ssa.gov/data/FO-Address-Open-Close-Times.csv";
 const DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"];
 
 export default async function ssa() {
-  const rows = parseCsv(await fetchCached(URL, "ssa-field-offices.csv", { fixture: "ssa-field-offices.csv" }));
+  let csv;
+  try { csv = await fetchCached(URL, "ssa-field-offices.csv", { fixture: "ssa-field-offices.csv" }); }
+  catch (e) { log(`ssa: ${e.message}; using the committed snapshot`); csv = readFileSync(resolve(ROOT, "pipeline/static/ssa-field-offices.csv")); }
+  const rows = parseCsv(csv);
   const items = []; let placed = 0;
   for (const r of rows) {
     const t = k => String(r[k] || "").trim();

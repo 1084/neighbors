@@ -15,11 +15,13 @@ test("ical: folded lines, DATE vs local TZID vs UTC, GEO, escapes", () => {
   assert.equal(icalDate("20260701").allDay, true); assert.equal(icalDate("20260701T120000Z").iso, "2026-07-01T12:00:00.000Z");
 });
 
-test("libevents: kids events under kids-and-family, closures and online dropped, Communico GEO used", async () => {
+test("libevents: kids events under kids-and-family, closures and online dropped, placed at the IMLS branch", async () => {
   const items = await libevents();
   const titles = items.map(i => i.title);
-  assert.ok(titles.includes("1000 Books Story Time")); assert.ok(!titles.some(t => /Closed/.test(t))); assert.ok(!titles.includes("Resume Workshop"));
-  const alx = items.find(i => i.title === "1000 Books Story Time"); assert.equal(alx.category, "kids-and-family"); assert.equal(alx.lat, 38.807858); assert.equal(alx.sourceName, "Alexandria Library");
+  assert.ok(titles.includes("1000 Books Story Time")); assert.ok(titles.includes("Toddler Storytime")); assert.ok(!titles.some(t => /Closed/.test(t))); assert.ok(!titles.includes("Resume Workshop"));
+  const alx = items.find(i => i.title === "1000 Books Story Time"); assert.equal(alx.category, "kids-and-family"); assert.ok(Number.isFinite(alx.lat)); assert.match(alx.place, /Beatley/); assert.equal(alx.sourceName, "Alexandria Library");
+  const kp = items.find(i => i.title === "Toddler Storytime"); assert.equal(kp.category, "kids-and-family"); assert.match(kp.place, /Kings Park/);
+  assert.equal(items.find(i => i.title === "Book Club: Local History").category, "education");
 });
 
 test("headstart: placed with program, zero coords dropped", async () => {

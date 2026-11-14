@@ -1,73 +1,82 @@
 // Library event calendars: dated programs at branches, the richest kids-and-family source there is.
-// Each library system publishes an iCal feed (Springshare LibCal) or per-event ICS (Communico); this
-// adapter reads a list of systems and places each event at its branch. Branch coordinates come from
-// the IMLS outlet file already in data/feeds/libraries.json, matched by name, with a per-system
-// override table for names that differ. Audience decides the category:
-//   children/teens/family   → kids-and-family
-//   everything else         → education (a public program at a library)
-// Add a system: one row in SYSTEMS (name, feed, state, match hints). No key, no scraping of HTML.
+// Each system's public calendar has a JSON endpoint that its own web page uses (no key, no HTML):
+//   libcal    (Springshare)  GET /ajax/calendar/list?c={cal}&date=YYYY-MM-DD&perpage=100  — one day per call
+//   communico (Attend)       GET /eeventcaldata?event_type=0&req={"date":…,"days":30}     — one call
+// (LibCal's iCal subscribe feed is capped at its 500 oldest events, so it never reaches today.)
+// Each event is placed at its branch: IMLS outlet coordinates from data/feeds/libraries.json, matched
+// by normalised name within the system's radius. Audience decides the category:
+//   babies/kids/teens/family → kids-and-family;  everything else → education (a public program at a library)
+// Online-only events and closures are dropped. Add a system: one row in SYSTEMS.
 import { resolve } from "node:path";
-import { item, log, DATA, readJson } from "../lib/util.mjs";
-import { fetchText, parseIcal } from "../lib/ical.mjs";
+import { item, log, DATA, readJson, fetchJson } from "../lib/util.mjs";
+import { icalDate } from "../lib/ical.mjs";
 
 const SYSTEMS = [
-  { id: "fcpl", name: "Fairfax County Public Library", state: "VA", kind: "libcal",
-    feed: "https://librarycalendar.fairfaxcounty.gov/ical_subscribe.php?src=p&cid=6524", fixture: "libcal-fcpl.ics",
-    web: "https://librarycalendar.fairfaxcounty.gov/calendar", imlsName: /fairfax county public library/i,
-    // LOCATION in the feed is the branch's short name; IMLS has the full outlet name
-    alias: { "ALL": null, "Virtual": null, "Online": null } },
+  { id: "fcpl", name: "Fairfax County Public Library", state: "VA", kind: "libcal", cal: 6524,
+    base: "https://librarycalendar.fairfaxcounty.gov", web: "https://librarycalendar.fairfaxcounty.gov/calendar?cid=6524",
+    center: [38.85, -77.30], radiusKm: 35, fixture: "libcal-fcpl.json" },
   { id: "alexlib", name: "Alexandria Library", state: "VA", kind: "communico",
-    feed: "https://alexlibraryva.org/events?r=thismonth", fixture: "communico-alexandria.html",
-    web: "https://alexlibraryva.org/events", imlsName: /alexandria (public )?library/i, alias: {} }
+    base: "https://alexlibraryva.org", web: "https://alexlibraryva.org/events",
+    center: [38.81, -77.08], radiusKm: 8, fixture: "communico-alexandria.json" },
 ];
-const KIDS = /\b(babies|toddler|preschool|children|child|kids?|family|families|teen|tween|storytime|story time|junior|youth|lego|homeschool)\b/i;
-const SKIP = /\b(closed|holiday|branches? will be closed)\b/i;
+const DAYS = 30;
+const KIDS = /\b(babies|baby|toddlers?|preschool(ers)?|children|child|kids?|family|families|teens?|tweens?|storytime|story time|youth|homeschool)\b/i;
+const SKIP = /\b(closed|closure|holiday hours)\b/i;
+const ONLINE = /^(virtual|online|zoom)\b/i;
+
+// "2026-11-16 10:00:00" (library local time) → ISO
+const local = s => { const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/.exec(s || ""); return m ? icalDate(`${m[1]}${m[2]}${m[3]}T${m[4]}${m[5]}${m[6] || "00"}`, { TZID: "America/New_York" }).iso : null; };
+const core = s => String(s || "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\b(the|library|libraries|branch|regional|community|central|jr|public)\b/g, " ").replace(/\s+/g, " ").trim();
+const km = (a, b) => { const R = 6371, d = Math.PI / 180, x = (b[1] - a[1]) * d * Math.cos((a[0] + b[0]) / 2 * d), y = (b[0] - a[0]) * d; return R * Math.hypot(x, y); };
+const ymd = t => new Date(t).toISOString().slice(0, 10);
+
+async function libcal(sys) {
+  const out = []; const seen = new Set(); const start = Date.now();
+  for (let d = 0; d < DAYS; d++) {
+    const date = ymd(start + d * 864e5);
+    let data; try { data = await fetchJson(`${sys.base}/ajax/calendar/list?c=${sys.cal}&date=${date}&perpage=100&page=1&audience=&cats=&camps=&inc=0`, { fixture: sys.fixture }); }
+    catch (e) { log(`libevents ${sys.id} ${date}: ${e.message}`); continue; }
+    for (const e of data?.results || []) {
+      if (seen.has(e.id)) continue; seen.add(e.id);
+      out.push({ id: e.id, title: e.title, text: e.shortdesc || "", loc: e.campus || e.location || "", online: !!e.online_event, tags: [...(e.audiences || []).map(a => a.name), ...(e.categories_arr || []).map(c => c.name)],
+        starts: local(e.startdt), ends: local(e.enddt), url: e.url });
+    }
+    if (process.env.FIXTURES) break;
+  }
+  return out;
+}
+async function communico(sys) {
+  const req = encodeURIComponent(JSON.stringify({ private: false, date: ymd(Date.now()), days: DAYS, locations: [], ages: [], types: [] }));
+  const data = await fetchJson(`${sys.base}/eeventcaldata?event_type=0&req=${req}`, { fixture: sys.fixture });
+  return (Array.isArray(data) ? data : []).map(e => ({ id: e.id, title: e.title, text: [e.sub_title, e.description].filter(Boolean).join(" · "), loc: e.location || e.library || "", online: e.event_type === "VIRTUAL",
+    tags: [...(e.agesArray || []), ...(e.tagsArray || [])].filter(Boolean), starts: local(e.raw_start_time || e.event_start), ends: local(e.raw_end_time || e.event_end), url: e.url }));
+}
 
 export default async function libevents() {
   const outlets = (readJson(resolve(DATA, "feeds", "libraries.json"), { items: [] }).items || []);
-  const items = []; const today = Date.now() - 864e5, horizon = Date.now() + 60 * 864e5;
+  const items = []; const today = Date.now() - 864e5, horizon = Date.now() + (DAYS + 1) * 864e5;
   for (const sys of SYSTEMS) {
-    const branches = outlets.filter(o => o.state === sys.state && (o.summary || "").toLowerCase().includes("library"));
-    const placeOf = (loc) => {
-      if (!loc) return null; const a = sys.alias[loc]; if (a === null) return null; const name = (a || loc).toLowerCase().replace(/\s+(branch|regional|community)?\s*library$/i, "").trim();
-      return branches.find(b => b.title.toLowerCase().includes(name)) || branches.find(b => name.includes(b.title.toLowerCase().replace(/\s+(branch|regional|community)?\s*library$/i, "").trim()) && name.length > 4) || null;
-    };
+    const branches = outlets.filter(o => o.state === sys.state && Number.isFinite(o.lat) && km([o.lat, o.lon], sys.center) <= sys.radiusKm).map(o => ({ ...o, core: core(o.title) }));
+    const placeOf = loc => { const c = core(loc); if (!c || ONLINE.test(loc)) return null; return branches.find(b => b.core === c) || branches.find(b => c.includes(b.core) || b.core.includes(c)) || null; };
     let events = [];
-    try {
-      if (sys.kind === "libcal") {
-        const ics = await fetchText(sys.feed, sys.fixture);
-        events = parseIcal(ics).map(e => ({ id: e.UID || e.URL, title: e.SUMMARY, text: e.DESCRIPTION, loc: e.LOCATION, cats: e.CATEGORIES || [], starts: e.DTSTART?.iso, ends: e.DTEND?.iso, allDay: !!e.DTSTART?.allDay, url: e.URL, geo: e.GEO }));
-      } else if (sys.kind === "communico") {
-        // the events page is JS-rendered, but each event's ICS is public: harvest ids from the page, then read each ICS
-        // the public page renders events client-side; the libnet host serves the same list server-side
-        let html = await fetchText(sys.feed, sys.fixture);
-        if (!/\/event\/\d{6,}/.test(html) && !process.env.FIXTURES) { for (const alt of ["https://alexandria.libnet.info/events?r=thismonth", "https://alexandria.libnet.info/events?r=nextmonth", "https://alexandria.libnet.info/events/upcoming"]) { try { html += await fetchText(alt, sys.fixture); } catch {} } }
-        const ids = [...new Set([...html.matchAll(/\/event\/(\d{6,})/g)].map(m => m[1]))].slice(0, 150);
-        for (const id of ids) {
-          try { const e = parseIcal(await fetchText(`https://calendar-generator.communico.co/attend/${id}`, `communico-${id}.ics`))[0]; if (e) events.push({ id, title: e.SUMMARY, text: e.DESCRIPTION, loc: (e.LOCATION || "").split("\n")[0], cats: e.CATEGORIES || [], starts: e.DTSTART?.iso, ends: e.DTEND?.iso, allDay: !!e.DTSTART?.allDay, url: e.URL || `https://alexlibraryva.org/event/${id}`, geo: e.GEO }); } catch {}
-        }
-      }
-    } catch (e) { log(`libevents ${sys.id}: ${e.message}`); continue; }
-    // say what came back, so a zero is diagnosable from the Actions log
-    const sample = events.slice(0, 3).map(e => `${(e.starts || "?").slice(0, 10)} "${(e.title || "").slice(0, 30)}" @ ${e.loc || "?"}${e.geo ? " (geo)" : ""}`).join("; ");
-    log(`libevents ${sys.id}: ${events.length} events parsed; branches known: ${branches.length}; sample: ${sample || "none"}`);
-    let n = 0, skipped = { nodate: 0, closed: 0, window: 0, noplace: 0 };
+    try { events = sys.kind === "libcal" ? await libcal(sys) : await communico(sys); }
+    catch (e) { log(`libevents ${sys.id}: ${e.message}`); continue; }
+    const skipped = { nodate: 0, closed: 0, window: 0, online: 0, noplace: 0 }; let n = 0;
     for (const e of events) {
       if (!e.starts || !e.title) { skipped.nodate++; continue; }
       if (SKIP.test(e.title)) { skipped.closed++; continue; }
-      const t = new Date(e.starts).getTime(); if (t < today || t > horizon) { skipped.window++; continue; }
-      const b = e.geo ? null : placeOf(e.loc); const lat = e.geo?.[0] ?? b?.lat, lon = e.geo?.[1] ?? b?.lon;
-      if (lat == null || lon == null) { skipped.noplace++; continue; } // an online or unplaceable event is not local
-      const kids = KIDS.test(`${e.title} ${e.text || ""} ${e.cats.join(" ")}`);
+      const t = new Date(e.starts).getTime(); if (!process.env.FIXTURES && (t < today || t > horizon)) { skipped.window++; continue; }
+      if (e.online) { skipped.online++; continue; }
+      const b = placeOf(e.loc); if (!b) { skipped.noplace++; continue; }
+      const kids = KIDS.test(`${e.title} ${e.tags.join(" ")}`);
       items.push(item({
         id: `libevents:${sys.id}:${e.id}`, feedId: "libevents", category: kids ? "kids-and-family" : "education",
-        title: e.title, summary: [e.cats.join(", "), (e.text || "").replace(/https?:\S+/g, "").trim()].filter(Boolean).join(" · "),
-        starts: e.starts, ends: e.ends || null, lat, lon,
-        place: b?.title || e.loc || sys.name, state: sys.state,
-        sourceUrl: e.url || sys.web, sourceName: sys.name,
+        title: e.title, summary: [e.tags.join(", "), e.text.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/https?:\S+/g, "").replace(/\s+/g, " ").trim().slice(0, 400)].filter(Boolean).join(" · "),
+        starts: e.starts, ends: e.ends || null, lat: b.lat, lon: b.lon,
+        place: b.title, state: sys.state, sourceUrl: e.url || sys.web, sourceName: sys.name,
       })); n++;
     }
-    log(`libevents ${sys.id}: ${n} placed; skipped ${JSON.stringify(skipped)}`);
+    log(`libevents ${sys.id}: ${events.length} events, ${branches.length} branches known → ${n} placed; skipped ${JSON.stringify(skipped)}`);
   }
   return items;
 }
